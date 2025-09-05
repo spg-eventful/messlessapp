@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:slotterapp/router.dart';
+import 'package:messless/router.dart';
 
 void main() {
   runApp(const MyApp());

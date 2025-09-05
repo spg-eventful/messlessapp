@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
-import 'package:slotterapp/screens/home.dart';
-import 'package:slotterapp/screens/login.dart';
-import 'package:slotterapp/widgets/scaffold_with_navbar.dart';
+import 'package:messless/screens/home.dart';
+import 'package:messless/screens/login.dart';
+import 'package:messless/widgets/scaffold_with_navbar.dart';
 
 enum RouterDestinations {
   home(url: '/'),

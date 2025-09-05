@@ -1,4 +1,4 @@
-package at.ilja_busch.pre.eventful.slotterapp
+package at.ilja_busch.pre.eventful.messless
 
 import io.flutter.embedding.android.FlutterActivity
 
