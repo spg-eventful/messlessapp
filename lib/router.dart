@@ -36,7 +36,7 @@ final goRouter = GoRouter(
         ),
         GoRoute(
           path: RouterDestinations.home.url,
-          name: "Die Hugos",
+          name: "Home",
           builder: (context, state) => HomeScreen(),
         ),
         //    GoRoute(
