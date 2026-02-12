@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:http/http.dart' as http;
 import 'package:messless/router.dart';
 
@@ -15,9 +17,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      supportedLocales: [/*Locale('en'), */ Locale('de', 'AT')],
+      supportedLocales: [Locale('de')],
       // TODO: add your application's localizations delegates.
-      localizationsDelegates: const [],
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       builder: (ctx, child) {
         print(ctx);
         return MaterialApp(home: child!);
