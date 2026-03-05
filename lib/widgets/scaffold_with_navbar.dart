@@ -1,35 +1,49 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:http/http.dart' as http;
-import 'package:messless/screens/home.dart';
 
 class ScaffoldWithNavbar extends StatelessWidget {
   const ScaffoldWithNavbar({super.key, required this.child});
 
   final Widget child;
 
+  static const Map<String, String> titles = {
+    "home": "Home",
+    "settings": "Settings",
+  };
+
   @override
   Widget build(BuildContext context) {
-    var routeName = GoRouterState.of(context).topRoute?.name;
+    final routeName = GoRouterState.of(context).topRoute?.name;
 
-    Widget? header;
-    // if (routeName != null) {
-    //   if (!context.canPop()) {
-    //     header = FHeader(title: Text(routeName));
-    //   } else {
-    //     header = FHeader.nested(
-    //       title: Text(routeName),
-    //       prefixes: [FHeaderAction.back(onPress: () {
-    //         context.pop();
-    //       })],
-    //     );
-    //   }
-    // }
+    final title = titles[routeName] ?? "MESSless";
 
     return Scaffold(
-      // header: header,
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF96d1fb),
+        foregroundColor: Colors.black,
+
+        leading: routeName == "settings"
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  context.go("/");
+                },
+              )
+            : null,
+
+        title: Text(title),
+
+        actions: [
+          if (routeName == "home")
+            IconButton(
+              icon: const Icon(Icons.settings),
+              tooltip: "Settings",
+              onPressed: () {
+                context.push("/settings");
+              },
+            ),
+        ],
+      ),
       body: SafeArea(top: true, child: child),
     );
   }
