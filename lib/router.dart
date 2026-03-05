@@ -2,13 +2,16 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messless/screens/home.dart';
 import 'package:messless/screens/login.dart';
+import 'package:messless/screens/settings.dart';
 import 'package:messless/widgets/scaffold_with_navbar.dart';
 
 enum RouterDestinations {
   home(url: '/'),
-  login(url: '/login');
+  login(url: '/login'),
+  settings(url: '/settings');
 
   final String url;
+
   const RouterDestinations({required this.url});
 }
 
@@ -31,29 +34,19 @@ final goRouter = GoRouter(
       routes: [
         GoRoute(
           path: RouterDestinations.login.url,
-          name: "Anmelden",
+          name: "login",
           builder: (context, state) => LoginScreen(),
         ),
         GoRoute(
           path: RouterDestinations.home.url,
-          name: "Home",
+          name: "home",
           builder: (context, state) => HomeScreen(),
         ),
-        //    GoRoute(
-        //      path: RouterDestinations.cashpoolOverview.url,
-        //      name: "Gruppenkassen",
-        //      builder: (context, state) => CashpoolOverviewScreen(),
-        //    ),
-        //    GoRoute(
-        //      path: RouterDestinations.cashpoolCreate.url,
-        //      name: "Gruppenkassa erstellen",
-        //      builder: (context, state) => CashpoolCreateScreen(),
-        //    ),
-        //    GoRoute(
-        //      path: RouterDestinations.cashpoolDetail.url,
-        //      name: "Gruppenkassa",
-        //      builder: (context, state) => CashpoolDetailScreen(),
-        //    ),
+        GoRoute(
+          path: RouterDestinations.settings.url,
+          name: "settings",
+          builder: (context, state) => SettingsScreen(),
+        ),
       ],
     ),
   ],
