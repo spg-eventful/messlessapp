@@ -23,12 +23,8 @@ class MyApp extends StatelessWidget {
         GlobalMaterialLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      builder: (ctx, child) {
-        print(ctx);
-        return MaterialApp(home: child!);
-      },
+      builder: (ctx, child) => child!,
       routerConfig: goRouter,
     );
   }
 }
-
