@@ -1,12 +1,11 @@
-import 'dart:convert';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:http/http.dart' as http;
 import 'package:messless/router.dart';
 
+import 'logger.dart';
+
 void main() {
+  initializeLogging();
   runApp(const MyApp());
 }
 
