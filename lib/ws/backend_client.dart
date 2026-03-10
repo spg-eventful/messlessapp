@@ -1,6 +1,6 @@
 import 'package:logging/logging.dart';
 import 'package:messless/ws/backend_service.dart';
-import 'package:messless/ws/exceptions/error_id_conflict.dart';
+import 'package:messless/ws/exceptions/id_conflict_exception.dart';
 import 'package:messless/ws/websocket_response.dart';
 import 'package:web_socket_client/web_socket_client.dart';
 
