@@ -5,17 +5,22 @@ import 'package:messless/ws/websocket_response.dart';
 import 'package:web_socket_client/web_socket_client.dart';
 
 class BackendClient {
-  final logger = Logger("WebSocket");
-  final socket = WebSocket(
+  static final logger = Logger((BackendClient).toString());
+  static final socket = WebSocket(
     Uri.parse("ws://10.0.2.2:8080/ws"),
   ); // TODO: put in some sort of config
-  var currentId = 0;
-  var initialized = false;
+  static var currentId = 0;
+  static var initialized = false;
 
   // id: callback
-  final Map<int, Function> requestsAwaitingResponse = {};
+  static final Map<int, Function> requestsAwaitingResponse = {};
 
-  void init() {
+  static void ensureInitialized() {
+    if (initialized) return;
+    init();
+  }
+
+  static void init() {
     if (initialized) {
       logger.warning(
         "init was called on an already initialized ws client! ignoring ...",
@@ -28,13 +33,13 @@ class BackendClient {
     socket.connection.listen(_handleStateChange);
   }
 
-  void _handleStateChange(ConnectionState state) {
+  static void _handleStateChange(ConnectionState state) {
     // TODO: Handle reconnect authentication
-    logger.info("socket.connection.state: $state");
+    logger.info("Connection state changed: $state");
   }
 
-  void _handleIncomingMessage(dynamic message) {
-    logger.info("Received message: $message");
+  static void _handleIncomingMessage(dynamic message) {
+    logger.fine("Received message: $message");
     try {
       var res = WebSocketResponse.fromStringified(message);
       logger.info(res);
@@ -53,15 +58,15 @@ class BackendClient {
     }
   }
 
-  void sendRaw(dynamic message) {
+  static void sendRaw(dynamic message) {
     socket.send(message);
   }
 
-  void sendIdentified(int id, String message, Function callback) {
+  static void sendIdentified(int id, String message, Function callback) {
     if (requestsAwaitingResponse.containsKey(id)) throw IdConflict(id);
     requestsAwaitingResponse[id] = callback;
     sendRaw(message);
   }
 
-  BackendService service(String name) => BackendService(this, name);
+  static BackendService service(String name) => BackendService(name);
 }
