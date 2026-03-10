@@ -1,3 +1,4 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:logging/logging.dart';
 import 'package:messless/ws/backend_service.dart';
 import 'package:messless/ws/exceptions/id_conflict_exception.dart';
@@ -6,9 +7,7 @@ import 'package:web_socket_client/web_socket_client.dart';
 
 class BackendClient {
   static final logger = Logger((BackendClient).toString());
-  static final socket = WebSocket(
-    Uri.parse("ws://10.0.2.2:8080/ws"),
-  ); // TODO: put in some sort of config
+  static final socket = WebSocket(Uri.parse(dotenv.get("BACKEND_WS_URL")));
   static var currentId = 0;
   static var initialized = false;
 
@@ -42,7 +41,7 @@ class BackendClient {
     logger.fine("Received message: $message");
     try {
       var res = WebSocketResponse.fromStringified(message);
-      logger.info(res);
+      logger.finer(res);
       var req = requestsAwaitingResponse[res.id];
       if (req == null) {
         logger.warning(

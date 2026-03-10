@@ -9,7 +9,7 @@ enum RouterDestinations {
   home(url: '/'),
   login(url: '/login'),
   settings(url: 'settings'),
-  wsTesting(url: '/wsTesting');
+  wsTesting(url: 'wsTesting');
 
   final String url;
 
@@ -22,13 +22,8 @@ final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(
 
 final goRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  initialLocation: RouterDestinations.wsTesting.url,
+  initialLocation: RouterDestinations.home.url,
   routes: [
-    GoRoute(
-      path: RouterDestinations.wsTesting.url,
-      name: "WS TEST",
-      builder: (context, state) => WebSocketTestingScreen(),
-    ),
     GoRoute(
       path: RouterDestinations.login.url,
       name: "Anmelden",
@@ -43,6 +38,13 @@ final goRouter = GoRouter(
           path: RouterDestinations.settings.url,
           name: "Einstellungen",
           builder: (context, state) => const SettingsScreen(),
+          routes: [
+            GoRoute(
+              path: RouterDestinations.wsTesting.url,
+              name: "WS TEST",
+              builder: (context, state) => WebSocketTestingScreen(),
+            ),
+          ],
         ),
       ],
     ),

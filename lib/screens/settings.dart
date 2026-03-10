@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:messless/router.dart';
 import 'package:messless/widgets/msls_appbar.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -21,6 +22,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            FilledButton(onPressed: () {
+              goRouter.push("/settings/wsTesting");
+            }, child: const Text("WS Testing")),
+
             const Text(
               "UI Components",
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
