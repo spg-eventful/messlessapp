@@ -1,13 +1,17 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
+import 'package:messless/screens/events.dart';
 import 'package:messless/screens/home.dart';
 import 'package:messless/screens/login.dart';
 import 'package:messless/screens/settings.dart';
+import 'package:messless/screens/warehouses.dart';
 
 enum RouterDestinations {
   home(url: '/'),
   login(url: '/login'),
-  settings(url: 'settings');
+  settings(url: '/settings'),
+  events(url: '/events'),
+  warehouses(url: '/warehouses');
 
   final String url;
 
@@ -38,6 +42,16 @@ final goRouter = GoRouter(
           builder: (context, state) => const SettingsScreen(),
         ),
       ],
+    ),
+    GoRoute(
+      path: RouterDestinations.events.url,
+      name: "Events",
+      builder: (context, state) => const EventsScreens(),
+    ),
+    GoRoute(
+      path: RouterDestinations.warehouses.url,
+      name: "Warehouses",
+      builder: (context, state) => const WarehousesScreen(),
     ),
   ],
 );
