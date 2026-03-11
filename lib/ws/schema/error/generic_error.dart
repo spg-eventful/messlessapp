@@ -14,4 +14,7 @@ class GenericError {
       _$GenericErrorFromJson(json);
 
   Map<String, dynamic> toJson() => _$GenericErrorToJson(this);
+
+  @override
+  String toString() => "GenericError($message, $errorClass)";
 }

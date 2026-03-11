@@ -22,8 +22,8 @@ class BackendService {
       _makeRequest(WebSocketMethod.read, id.toString());
 
   /// Find multiple entities
-  Future<WebSocketResponse> find(int id) async =>
-      _makeRequest(WebSocketMethod.read, id.toString());
+  Future<WebSocketResponse> find() async =>
+      _makeRequest(WebSocketMethod.read, null);
 
   /// Delete a single entity
   Future<WebSocketResponse> delete(int id) async =>
