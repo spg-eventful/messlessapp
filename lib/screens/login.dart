@@ -17,6 +17,14 @@ class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool isFormValid = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController.addListener(updateFormValidState);
+    _passwordController.addListener(updateFormValidState);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,13 +44,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextFormField(
                       controller: _emailController,
                       decoration: const InputDecoration(
-                        hintText: 'Enter your email',
+                        hintText: 'E-Mail eingeben',
                         border: OutlineInputBorder(),
-                        label: Text("Email"),
+                        label: Text("E-Mail"),
                       ),
                       validator: (String? value) {
                         if (value == null || !value.contains("@")) {
-                          return 'Please enter an email!';
+                          return 'Bitte geben Sie eine gültige E-Mail ein!';
                         }
                         return null;
                       },
@@ -52,13 +60,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: _passwordController,
                       obscureText: true,
                       decoration: const InputDecoration(
-                        hintText: 'Enter your password',
+                        hintText: 'Passwort eingeben',
                         border: OutlineInputBorder(),
-                        label: Text("Password"),
+                        label: Text("Passwort"),
                       ),
                       validator: (String? value) {
                         if (value == null || value.length < 3) {
-                          return 'Password must be longer than 3 chars';
+                          return 'Muss länger als drei Zeichen sein!';
                         }
                         return null;
                       },
@@ -66,34 +74,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton(
-                        onPressed: () async {
-                          if (!_formKey.currentState!.validate()) return;
-
-                          try {
-                            await BackendClient.authenticate(
-                              BasicAuth(
-                                _emailController.text,
-                                _passwordController.text,
-                              ),
-                            );
-                          } catch (e) {
-                            Logger.root.warning(e);
-                            if (e is AuthException) {
-                              final snackBar = SnackBar(
-                                content: const Text('Ungültiger Login!'),
-                              );
-
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(
-                                  context,
-                                ).showSnackBar(snackBar);
-                              }
-                              return;
-                            }
-                            // TODO: Handle
-                          }
-                        },
-                        child: const Text('Registrieren'),
+                        onPressed: isFormValid ? submitLogin : null,
+                        child: const Text('Anmelden'),
                       ),
                     ),
                   ],
@@ -104,5 +86,30 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  void updateFormValidState() => setState(() {
+    isFormValid = _formKey.currentState!.validate();
+  });
+
+  void submitLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    try {
+      await BackendClient.authenticate(
+        BasicAuth(_emailController.text, _passwordController.text),
+      );
+    } catch (e) {
+      Logger.root.warning(e);
+      if (e is AuthException) {
+        final snackBar = SnackBar(content: const Text('Ungültiger Login!'));
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        }
+        return;
+      }
+      rethrow;
+    }
   }
 }

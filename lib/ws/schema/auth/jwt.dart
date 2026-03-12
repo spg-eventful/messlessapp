@@ -8,14 +8,14 @@ class Jwt {
     // Header.Payload.Signature
     // We only want the signature
     Map<String, dynamic> payload = jsonDecode(
-      base64Decode(stringified.split(".")[1]).toString(),
+      utf8.decode(base64Decode(base64Url.normalize(stringified.split(".")[1]))),
     );
     return Jwt(
       payload["aud"],
       payload["iss"],
       payload["sub"],
       payload["exp"],
-      int.parse(payload["id"]),
+      payload["id"],
     );
   }
 

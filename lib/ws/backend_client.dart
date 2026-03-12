@@ -8,6 +8,7 @@ import 'package:messless/ws/auth_state.dart';
 import 'package:messless/ws/backend_service.dart';
 import 'package:messless/ws/exceptions/id_conflict_exception.dart';
 import 'package:messless/ws/exceptions/jwt_auth_exception.dart';
+import 'package:messless/ws/schema/auth/auth.dart';
 import 'package:messless/ws/schema/auth/jwt.dart';
 import 'package:messless/ws/schema/auth/request/basic_auth.dart';
 import 'package:messless/ws/schema/auth/request/jwt_auth.dart';
@@ -94,9 +95,7 @@ class BackendClient {
       }
 
       await storage.write(key: authStorageKey, value: res.body);
-      authState.authenticatedConnection = AuthenticatedConnection(
-        Jwt.decode(res.body!),
-      );
+      _saveAuthenticatedConnection(res.body!);
       return;
     }
 
@@ -113,8 +112,15 @@ class BackendClient {
       );
     }
 
+    _saveAuthenticatedConnection(res.body!);
+  }
+
+  static void _saveAuthenticatedConnection(String resBody) {
+    final deserialized = Auth.fromJson(jsonDecode(resBody));
+
     authState.authenticatedConnection = AuthenticatedConnection(
-      Jwt.decode(res.body!),
+      Jwt.decode(deserialized.jwt),
+      deserialized.user,
     );
   }
 }
