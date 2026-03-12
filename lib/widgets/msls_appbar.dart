@@ -12,8 +12,6 @@ class MslsAppbar extends StatelessWidget implements PreferredSizeWidget {
     final routeName = route?.name ?? "MESSless";
 
     return AppBar(
-      backgroundColor: const Color(0xFF96d1fb),
-      foregroundColor: Colors.black,
       title: Text(routeName),
 
       actions: [
