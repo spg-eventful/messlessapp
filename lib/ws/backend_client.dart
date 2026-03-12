@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
@@ -25,6 +26,7 @@ class BackendClient {
   static final authState = AuthState();
   static var currentId = 0;
   static var initialized = false;
+  static final messageQueue = Queue();
 
   // id: callback
   static final Map<int, Function> requestsAwaitingResponse = {};
@@ -50,6 +52,11 @@ class BackendClient {
   static void _handleStateChange(ConnectionState state) {
     // TODO: Handle reconnect authentication
     logger.info("Connection state changed: $state");
+    if (socket.connection.state is Connected) {
+      while (messageQueue.isNotEmpty) {
+        sendRaw(messageQueue.removeFirst());
+      }
+    }
   }
 
   static void _handleIncomingMessage(dynamic message) {
@@ -73,6 +80,10 @@ class BackendClient {
   }
 
   static void sendRaw(dynamic message) {
+    if (socket.connection.state is! Connected) {
+      messageQueue.add(message);
+      return;
+    }
     socket.send(message);
   }
 
@@ -93,20 +104,22 @@ class BackendClient {
       if (res.status != HttpStatus.created) {
         throw BasicAuthException(GenericError.fromJson(jsonDecode(res.body!)));
       }
-
-      await storage.write(key: authStorageKey, value: res.body);
-      _saveAuthenticatedConnection(res.body!);
-      return;
+      return _saveAuthenticatedConnection(res.body!);
     }
 
     // JWT Strategy
     var jwt = await storage.read(key: authStorageKey);
-    if (jwt == null) throw JwtAuthException("jwt not found in storage!");
+    logger.info("jwt from storage: $jwt");
+    if (jwt == null) {
+      await storage.delete(key: authStorageKey);
+      throw JwtAuthException("jwt not found in storage!");
+    }
 
     var res = await BackendClient.service(
       "auth",
     ).create(jsonEncode(JwtAuth(jwt)));
     if (res.status != HttpStatus.ok) {
+      await storage.delete(key: authStorageKey);
       throw JwtAuthException(
         GenericError.fromJson(jsonDecode(res.body!)).message,
       );
@@ -115,12 +128,13 @@ class BackendClient {
     _saveAuthenticatedConnection(res.body!);
   }
 
-  static void _saveAuthenticatedConnection(String resBody) {
+  static Future<void> _saveAuthenticatedConnection(String resBody) async {
     final deserialized = Auth.fromJson(jsonDecode(resBody));
 
     authState.authenticatedConnection = AuthenticatedConnection(
       Jwt.decode(deserialized.jwt),
       deserialized.user,
     );
+    await storage.write(key: authStorageKey, value: deserialized.jwt);
   }
 }
