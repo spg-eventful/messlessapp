@@ -131,6 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
       await BackendClient.authenticate(
         BasicAuth(_emailController.text, _passwordController.text),
       );
+      if (mounted) context.go("/");
     } catch (e) {
       Logger.root.warning(e);
       if (e is AuthException) {
