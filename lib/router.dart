@@ -3,11 +3,13 @@ import 'package:go_router/go_router.dart';
 import 'package:messless/screens/home.dart';
 import 'package:messless/screens/login.dart';
 import 'package:messless/screens/settings.dart';
+import 'package:messless/screens/ws.dart';
 
 enum RouterDestinations {
   home(url: '/'),
   login(url: '/login'),
-  settings(url: 'settings');
+  settings(url: 'settings'),
+  wsTesting(url: 'wsTesting');
 
   final String url;
 
@@ -36,6 +38,13 @@ final goRouter = GoRouter(
           path: RouterDestinations.settings.url,
           name: "Einstellungen",
           builder: (context, state) => const SettingsScreen(),
+          routes: [
+            GoRoute(
+              path: RouterDestinations.wsTesting.url,
+              name: "WS TEST",
+              builder: (context, state) => WebSocketTestingScreen(),
+            ),
+          ],
         ),
       ],
     ),

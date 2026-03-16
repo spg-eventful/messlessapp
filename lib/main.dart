@@ -1,12 +1,15 @@
-import 'dart:convert';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:http/http.dart' as http;
 import 'package:messless/router.dart';
 
-void main() {
+import 'logger.dart';
+
+void main() async {
+  initializeLogging();
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load();
+
   runApp(const MyApp());
 }
 

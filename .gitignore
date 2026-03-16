@@ -1,3 +1,5 @@
+*.env
+
 # Directus
 backend/directus/uploads
 
