@@ -22,7 +22,7 @@ final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(
 
 final goRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  initialLocation: RouterDestinations.home.url,
+  initialLocation: RouterDestinations.login.url,
   routes: [
     GoRoute(
       path: RouterDestinations.login.url,

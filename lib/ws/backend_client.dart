@@ -1,15 +1,32 @@
+import 'dart:collection';
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:logging/logging.dart';
+import 'package:messless/secure_storage.dart';
+import 'package:messless/ws/auth_state.dart';
 import 'package:messless/ws/backend_service.dart';
 import 'package:messless/ws/exceptions/id_conflict_exception.dart';
+import 'package:messless/ws/exceptions/jwt_auth_exception.dart';
+import 'package:messless/ws/schema/auth/auth.dart';
+import 'package:messless/ws/schema/auth/jwt.dart';
+import 'package:messless/ws/schema/auth/request/basic_auth.dart';
+import 'package:messless/ws/schema/auth/request/jwt_auth.dart';
+import 'package:messless/ws/schema/error/generic_error.dart';
 import 'package:messless/ws/websocket_response.dart';
 import 'package:web_socket_client/web_socket_client.dart';
 
+import 'exceptions/basic_auth_exception.dart';
+
 class BackendClient {
+  static const String authStorageKey = "JWT_TOKEN";
   static final logger = Logger((BackendClient).toString());
   static final socket = WebSocket(Uri.parse(dotenv.get("BACKEND_WS_URL")));
+  static final authState = AuthState();
   static var currentId = 0;
   static var initialized = false;
+  static final messageQueue = Queue();
 
   // id: callback
   static final Map<int, Function> requestsAwaitingResponse = {};
@@ -35,6 +52,11 @@ class BackendClient {
   static void _handleStateChange(ConnectionState state) {
     // TODO: Handle reconnect authentication
     logger.info("Connection state changed: $state");
+    if (socket.connection.state is Connected) {
+      while (messageQueue.isNotEmpty) {
+        sendRaw(messageQueue.removeFirst());
+      }
+    }
   }
 
   static void _handleIncomingMessage(dynamic message) {
@@ -58,6 +80,10 @@ class BackendClient {
   }
 
   static void sendRaw(dynamic message) {
+    if (socket.connection.state is! Connected) {
+      messageQueue.add(message);
+      return;
+    }
     socket.send(message);
   }
 
@@ -68,4 +94,47 @@ class BackendClient {
   }
 
   static BackendService service(String name) => BackendService(name);
+
+  static Future<void> authenticate(BasicAuth? basicAuth) async {
+    if (basicAuth != null) {
+      // Basic Auth Strategy
+      var res = await BackendClient.service(
+        "auth",
+      ).create(jsonEncode(basicAuth));
+      if (res.status != HttpStatus.created) {
+        throw BasicAuthException(GenericError.fromJson(jsonDecode(res.body!)));
+      }
+      return _saveAuthenticatedConnection(res.body!);
+    }
+
+    // JWT Strategy
+    var jwt = await storage.read(key: authStorageKey);
+    logger.info("jwt from storage: $jwt");
+    if (jwt == null) {
+      await storage.delete(key: authStorageKey);
+      throw JwtAuthException("jwt not found in storage!");
+    }
+
+    var res = await BackendClient.service(
+      "auth",
+    ).create(jsonEncode(JwtAuth(jwt)));
+    if (res.status != HttpStatus.ok) {
+      await storage.delete(key: authStorageKey);
+      throw JwtAuthException(
+        GenericError.fromJson(jsonDecode(res.body!)).message,
+      );
+    }
+
+    _saveAuthenticatedConnection(res.body!);
+  }
+
+  static Future<void> _saveAuthenticatedConnection(String resBody) async {
+    final deserialized = Auth.fromJson(jsonDecode(resBody));
+
+    authState.authenticatedConnection = AuthenticatedConnection(
+      Jwt.decode(deserialized.jwt),
+      deserialized.user,
+    );
+    await storage.write(key: authStorageKey, value: deserialized.jwt);
+  }
 }
