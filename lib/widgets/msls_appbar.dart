@@ -15,7 +15,7 @@ class MslsAppbar extends StatelessWidget implements PreferredSizeWidget {
       title: Text(routeName),
 
       actions: [
-        if (route?.path == RouterDestinations.home.url)
+        if (route?.path == RouterDestinations.home.url) ... [
           IconButton(
             icon: const Icon(Icons.settings),
             tooltip: "Settings",
@@ -23,6 +23,7 @@ class MslsAppbar extends StatelessWidget implements PreferredSizeWidget {
               context.push("/settings");
             },
           ),
+        ]
       ],
     );
   }
