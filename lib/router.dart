@@ -5,17 +5,21 @@ import 'package:messless/screens/home.dart';
 import 'package:messless/screens/login.dart';
 import 'package:messless/screens/settings.dart';
 import 'package:messless/screens/warehouses.dart';
+import 'package:messless/screens/ws.dart';
 
 enum RouterDestinations {
   home(url: '/'),
   login(url: '/login'),
   settings(url: '/settings'),
   events(url: '/events'),
-  warehouses(url: '/warehouses');
+  warehouses(url: '/warehouses'),
+  wsTesting(url: '/wsTesting');
 
   final String url;
 
   const RouterDestinations({required this.url});
+
+  String withoutLeadingSlash() => url.substring(1);
 }
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(
@@ -37,28 +41,28 @@ final goRouter = GoRouter(
       builder: (context, state) => const HomeScreen(),
       routes: [
         GoRoute(
-          path: RouterDestinations.settings.url,
+          path: RouterDestinations.settings.withoutLeadingSlash(),
           name: "Einstellungen",
           builder: (context, state) => const SettingsScreen(),
           routes: [
             GoRoute(
-              path: RouterDestinations.wsTesting.url,
+              path: RouterDestinations.wsTesting.withoutLeadingSlash(),
               name: "WS TEST",
               builder: (context, state) => WebSocketTestingScreen(),
             ),
           ],
         ),
+        GoRoute(
+          path: RouterDestinations.events.withoutLeadingSlash(),
+          name: "Events",
+          builder: (context, state) => const EventsScreens(),
+        ),
+        GoRoute(
+          path: RouterDestinations.warehouses.withoutLeadingSlash(),
+          name: "Warehouses",
+          builder: (context, state) => const WarehousesScreen(),
+        ),
       ],
-    ),
-    GoRoute(
-      path: RouterDestinations.events.url,
-      name: "Events",
-      builder: (context, state) => const EventsScreens(),
-    ),
-    GoRoute(
-      path: RouterDestinations.warehouses.url,
-      name: "Warehouses",
-      builder: (context, state) => const WarehousesScreen(),
     ),
   ],
 );

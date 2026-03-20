@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:messless/router.dart';
 import 'package:messless/widgets/msls_appbar.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 label: "Warehouses",
                 icon: Icons.warehouse_rounded,
                 color: const Color(0xFF96d1fb),
-                onPressed: () => context.push("/warehouses"),
+                onPressed: () => context.push(RouterDestinations.warehouses.url),
               ),
 
               const SizedBox(height: 16),
@@ -34,7 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 label: "Events",
                 icon: Icons.event_note_rounded,
                 color: const Color(0xFF96d1fb),
-                onPressed: () => context.push("/events"),
+                onPressed: () => context.push(RouterDestinations.events.url),
               ),
             ],
           ),
