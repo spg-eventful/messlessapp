@@ -1,5 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
+import 'package:messless/screens/add_equipment.dart';
+import 'package:messless/screens/equipment.dart';
+import 'package:messless/screens/equipment_details.dart';
 import 'package:messless/screens/events.dart';
 import 'package:messless/screens/home.dart';
 import 'package:messless/screens/login.dart';
@@ -13,6 +16,9 @@ enum RouterDestinations {
   settings(url: '/settings'),
   events(url: '/events'),
   warehouses(url: '/warehouses'),
+  equipment(url: '/equipment'),
+  addEquipment(url: '/addEquipment'),
+  equipmentDetails(url: '/equipmentDetails/:id'),
   wsTesting(url: '/wsTesting');
 
   final String url;
@@ -61,6 +67,25 @@ final goRouter = GoRouter(
           path: RouterDestinations.warehouses.withoutLeadingSlash(),
           name: "Warehouses",
           builder: (context, state) => const WarehousesScreen(),
+        ),
+        GoRoute(
+          path: RouterDestinations.equipment.withoutLeadingSlash(),
+          name: "Equipment",
+          builder: (context, state) => const EquipmentScreen(),
+        ),
+        GoRoute(
+          path: RouterDestinations.addEquipment.withoutLeadingSlash(),
+          name: "Add Equipment",
+          builder: (context, state) => const AddEquipmentScreen(),
+        ),
+        GoRoute(
+          path: RouterDestinations.equipmentDetails.withoutLeadingSlash(),
+          name: "Equipment Details",
+          builder: (context, state) {
+            final String idString = state.pathParameters['id']!;
+            final int id = int.parse(idString);
+            return EquipmentDetailsScreen(equipmentId: id);
+          } ,
         ),
       ],
     ),
