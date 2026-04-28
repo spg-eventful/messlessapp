@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../router.dart';
 
 class MslsAppbar extends StatelessWidget implements PreferredSizeWidget {
-  const MslsAppbar({super.key});
+  final List<Widget>? actions;
+
+  const MslsAppbar({super.key, this.actions});
 
   @override
   Widget build(BuildContext context) {
@@ -13,17 +15,15 @@ class MslsAppbar extends StatelessWidget implements PreferredSizeWidget {
 
     return AppBar(
       title: Text(routeName),
-
       actions: [
-        if (route?.path == RouterDestinations.home.url) ... [
+        if (actions != null) ...actions!,
+        if (route?.path == RouterDestinations.home.url) ...[
           IconButton(
             icon: const Icon(Icons.settings),
             tooltip: "Settings",
-            onPressed: () {
-              context.push("/settings");
-            },
+            onPressed: () => context.push("/settings"),
           ),
-        ]
+        ],
       ],
     );
   }
