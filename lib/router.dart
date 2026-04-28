@@ -1,8 +1,10 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
-import 'package:messless/screens/add_equipment.dart';
-import 'package:messless/screens/equipment.dart';
-import 'package:messless/screens/equipment_details.dart';
+import 'package:messless/screens/technicalLog/qr_scanner_screen.dart';
+import 'package:messless/screens/technicalLog/add_technical_log_entry.dart';
+import 'package:messless/screens/equipment/add_equipment.dart';
+import 'package:messless/screens/equipment/equipment.dart';
+import 'package:messless/screens/equipment/equipment_details.dart';
 import 'package:messless/screens/events.dart';
 import 'package:messless/screens/home.dart';
 import 'package:messless/screens/login.dart';
@@ -19,7 +21,10 @@ enum RouterDestinations {
   equipment(url: '/equipment'),
   addEquipment(url: '/addEquipment'),
   equipmentDetails(url: '/equipmentDetails/:id'),
-  wsTesting(url: '/wsTesting');
+  editEquipment(url: '/editEquipment/:id'),
+  wsTesting(url: '/wsTesting'),
+  qrScanner(url: '/qrScanner'),
+  addTechnicalLogEntry(url: '/addTechnicalLogEntry/:id');
 
   final String url;
 
@@ -85,9 +90,24 @@ final goRouter = GoRouter(
             final String idString = state.pathParameters['id']!;
             final int id = int.parse(idString);
             return EquipmentDetailsScreen(equipmentId: id);
-          } ,
+          },
+        ),
+        GoRoute(
+          path: RouterDestinations.qrScanner.withoutLeadingSlash(),
+          name: "QR Scanner",
+          builder: (context, state) => const QrScannerScreen(),
+        ),
+        GoRoute(
+          path: RouterDestinations.addTechnicalLogEntry.withoutLeadingSlash(),
+          name: "Add Technical Log Entry",
+          builder: (context, state) {
+            final String idString = state.pathParameters['id']!;
+            final int id = int.parse(idString);
+            return AddTechnicalLogEntry(equipmentId: id);
+          },
         ),
       ],
     ),
   ],
 );
+
