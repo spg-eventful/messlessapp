@@ -7,17 +7,21 @@ class Equipment {
   Equipment(
     this.id,
     this.label,
+    this.latitude,
     this.longitude,
-    this.latitude, this.belongsToWarehouse,
+    this.belongsToWarehouse,
+    this.storage,
   );
 
   final int id;
   final String label;
-  final double longitude;
   final double latitude;
+  final double longitude;
   final int belongsToWarehouse;
+  final int? storage;
 
-  factory Equipment.fromJson(Map<String, dynamic> json) => _$EquipmentFromJson(json);
+  factory Equipment.fromJson(Map<String, dynamic> json) =>
+      _$EquipmentFromJson(json);
 
   Map<String, dynamic> toJson() => _$EquipmentToJson(this);
 }
