@@ -4,19 +4,15 @@ part 'warehouse.g.dart';
 
 @JsonSerializable()
 class Warehouse {
-  Warehouse(
-    this.id,
-    this.label,
-    this.longitude,
-    this.latitude,
-  );
+  Warehouse(this.id, this.label, this.latitude, this.longitude);
 
   final int id;
   final String label;
-  final double longitude;
   final double latitude;
+  final double longitude;
 
-  factory Warehouse.fromJson(Map<String, dynamic> json) => _$WarehouseFromJson(json);
+  factory Warehouse.fromJson(Map<String, dynamic> json) =>
+      _$WarehouseFromJson(json);
 
   Map<String, dynamic> toJson() => _$WarehouseToJson(this);
 }
