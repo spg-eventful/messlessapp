@@ -18,6 +18,8 @@ class _WarehouseFormScreenState extends State<WarehouseFormScreen> {
   final _nameController = TextEditingController();
   final _latController = TextEditingController();
   final _lngController = TextEditingController();
+  int? _selectedCompanyId;
+  late final Future<List<Map<String, dynamic>>> _companiesFuture;
 
   late final Future<void> _initFuture;
 
