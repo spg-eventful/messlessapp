@@ -292,7 +292,7 @@ class _AddTechnicalLogEntryScreenState extends State<AddTechnicalLogEntry> {
           "isCheckIn": isCheckIn,
           "loggable": _belongsTo,
           "latitude": double.tryParse(_latitudeController.text),
-          "longitude": double.tryParse(_longitudeController.text), // Backend-Key mit Tippfehler
+          "longitude": double.tryParse(_longitudeController.text),
         }),
       );
       if (mounted) context.pop();
@@ -312,10 +312,11 @@ class _AddTechnicalLogEntryScreenState extends State<AddTechnicalLogEntry> {
       _latitudeController.text = position.latitude.toString();
       _longitudeController.text = position.longitude.toString();
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.toString())));
+      }
     } finally {
       if (mounted) setState(() => _isLocationLoading = false);
     }
