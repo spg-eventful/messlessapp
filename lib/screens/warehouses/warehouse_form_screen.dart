@@ -18,8 +18,6 @@ class _WarehouseFormScreenState extends State<WarehouseFormScreen> {
   final _nameController = TextEditingController();
   final _latController = TextEditingController();
   final _lngController = TextEditingController();
-  int? _selectedCompanyId;
-  late final Future<List<Map<String, dynamic>>> _companiesFuture;
 
   late final Future<void> _initFuture;
 
@@ -68,10 +66,6 @@ class _WarehouseFormScreenState extends State<WarehouseFormScreen> {
     }
 
     final companyId = WarehouseWs.activeCompanyId;
-
-    if (companyId == null) {
-      throw StateError('Keine Company ausgewählt');
-    }
 
     if (isEditMode) {
       await WarehouseWs.update(
