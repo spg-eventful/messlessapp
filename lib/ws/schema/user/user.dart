@@ -12,6 +12,7 @@ class User {
     this.email,
     this.phone,
     this.role,
+      this.company
   );
 
   final int id;
@@ -21,6 +22,7 @@ class User {
   final String email;
   final String phone;
   final String role;
+  final int? company;
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 

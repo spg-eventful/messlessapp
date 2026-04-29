@@ -4,7 +4,9 @@ import 'package:messless/screens/events.dart';
 import 'package:messless/screens/home.dart';
 import 'package:messless/screens/login.dart';
 import 'package:messless/screens/settings.dart';
-import 'package:messless/screens/warehouses.dart';
+import 'package:messless/screens/warehouses/warehouse_detail_screen.dart';
+import 'package:messless/screens/warehouses/warehouse_form_screen.dart';
+import 'package:messless/screens/warehouses/warehouses_screen.dart';
 import 'package:messless/screens/ws.dart';
 
 enum RouterDestinations {
@@ -61,6 +63,31 @@ final goRouter = GoRouter(
           path: RouterDestinations.warehouses.withoutLeadingSlash(),
           name: "Warehouses",
           builder: (context, state) => const WarehousesScreen(),
+          routes: [
+            GoRoute(
+              path: 'new',
+              name: "Warehouse Create",
+              builder: (context, state) => const WarehouseFormScreen(),
+            ),
+            GoRoute(
+              path: ':id',
+              name: "Warehouse Detail",
+              builder: (context, state) {
+                final id = int.parse(state.pathParameters['id']!);
+                return WarehouseDetailScreen(warehouseId: id);
+              },
+              routes: [
+                GoRoute(
+                  path: 'edit',
+                  name: "Warehouse Edit",
+                  builder: (context, state) {
+                    final id = int.parse(state.pathParameters['id']!);
+                    return WarehouseFormScreen(warehouseId: id);
+                  },
+                ),
+              ],
+            ),
+          ],
         ),
       ],
     ),
