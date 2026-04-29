@@ -21,7 +21,6 @@ enum RouterDestinations {
   equipment(url: '/equipment'),
   addEquipment(url: '/addEquipment'),
   equipmentDetails(url: '/equipmentDetails/:id'),
-  editEquipment(url: '/editEquipment/:id'),
   wsTesting(url: '/wsTesting'),
   qrScanner(url: '/qrScanner'),
   addTechnicalLogEntry(url: '/addTechnicalLogEntry/:id');
