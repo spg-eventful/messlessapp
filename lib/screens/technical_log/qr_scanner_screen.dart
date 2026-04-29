@@ -81,7 +81,6 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
               }
             },
           ),
-          // Visueller Rahmen für bessere User-Guidance
           Center(
             child: Container(
               width: 250,

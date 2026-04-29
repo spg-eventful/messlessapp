@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messless/widgets/msls_appbar.dart';
-import 'package:messless/ws/schema/warehouse/warehouse.dart';
+import 'package:messless/ws/schema/equipment_storage/equipment_storage.dart';
 import 'package:messless/ws/schema/event/event.dart';
-import 'package:messless/ws/schema/equipmentStorage/equipment_storage.dart';
+import 'package:messless/ws/schema/warehouse/warehouse.dart';
 
 import '../../../ws/backend_client.dart';
 

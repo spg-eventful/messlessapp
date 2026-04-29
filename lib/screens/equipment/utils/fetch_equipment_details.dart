@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import '../../../ws/backend_client.dart';
 import '../../../ws/schema/equipment/equipment.dart';
-import '../../../ws/schema/technicalLogEntry/technical_log_entry.dart';
+import '../../../ws/schema/technical_log_entry/technical_log_entry.dart';
 import '../../../ws/schema/warehouse/warehouse.dart';
 
 class EquipmentDetailsData {
