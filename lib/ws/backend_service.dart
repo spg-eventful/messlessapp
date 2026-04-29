@@ -25,6 +25,10 @@ class BackendService {
   Future<WebSocketResponse> find() async =>
       _makeRequest(WebSocketMethod.read, null);
 
+  /// Find multiple entities with a body
+  Future<WebSocketResponse> findWithBody(String body) async =>
+      _makeRequest(WebSocketMethod.read, body);
+
   /// Delete a single entity
   Future<WebSocketResponse> delete(int id) async =>
       _makeRequest(WebSocketMethod.delete, id.toString());

@@ -32,6 +32,16 @@ class HomeScreen extends StatelessWidget {
                 color: const Color(0xFF96d1fb),
                 onPressed: () => context.push(RouterDestinations.events.url),
               ),
+
+              //TODO: this button is just for testing, remove it later
+              const SizedBox(height: 16),
+              _buildBigButton(
+                context,
+                label: "Equipment",
+                icon: Icons.event_note_rounded,
+                color: const Color(0xFF96d1fb),
+                onPressed: () => context.push(RouterDestinations.equipment.url),
+              ),
             ],
           ),
         ),
