@@ -1,3 +1,5 @@
+*.g.dart
+
 *.env
 
 # Directus
