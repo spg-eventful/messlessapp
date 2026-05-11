@@ -26,7 +26,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    _dataFuture = fetchEvent(widget.eventIdj);
+    _dataFuture = fetchEvent(widget.eventId);
   }
 
   @override
