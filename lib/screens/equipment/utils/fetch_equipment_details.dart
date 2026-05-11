@@ -10,9 +10,13 @@ class EquipmentDetailsData {
   final Warehouse warehouse;
   final List<TechnicalLogEntry>? technicalLogEntries;
 
-  EquipmentDetailsData({required this.equipment, required this.warehouse, required this.technicalLogEntries});
+  EquipmentDetailsData({
+    required this.equipment,
+    required this.warehouse,
+    required this.technicalLogEntries,
+  });
 
-  static Future<Equipment> getEquipment(int id) async {
+  static Future<Equipment> fetchEquipment(int id) async {
     try {
       var response = await BackendClient.service("equipments").get(id);
       if (response.body == null || response.body.toString().isEmpty) {
@@ -24,7 +28,7 @@ class EquipmentDetailsData {
     }
   }
 
-  static Future<Warehouse> getWarehouses(int id) async {
+  static Future<Warehouse> fetchWarehouses(int id) async {
     try {
       var response = await BackendClient.service("warehouses").get(id);
       if (response.body == null || response.body.toString().isEmpty) {
@@ -36,10 +40,11 @@ class EquipmentDetailsData {
     }
   }
 
-  static Future<List<TechnicalLogEntry>> TechnicalLogs(int id) async {
+  static Future<List<TechnicalLogEntry>> fetchTechnicalLogs(int id) async {
     try {
-      var response = await BackendClient.service("technical-log-entries")
-          .findWithBody(jsonEncode({"equipmentId": id}));
+      var response = await BackendClient.service(
+        "technical-log-entries",
+      ).findWithBody(jsonEncode({"equipmentId": id}));
       if (response.body == null || response.body.toString().isEmpty) {
         return [];
       }
@@ -51,9 +56,16 @@ class EquipmentDetailsData {
   }
 
   static Future<EquipmentDetailsData> loadData(int equipmentId) async {
-    final equipment = await EquipmentDetailsData.getEquipment(equipmentId);
-    final warehouse = await EquipmentDetailsData.getWarehouses(equipment.belongsToWarehouse);
-    final technicalLogEntries = await EquipmentDetailsData.TechnicalLogs(equipmentId);
-    return EquipmentDetailsData(equipment: equipment, warehouse: warehouse, technicalLogEntries: technicalLogEntries);
+    final equipment = await EquipmentDetailsData.fetchEquipment(equipmentId);
+    final results = await Future.wait([
+      fetchWarehouses(equipment.belongsToWarehouse),
+      fetchTechnicalLogs(equipmentId),
+    ]);
+
+    return EquipmentDetailsData(
+      equipment: equipment,
+      warehouse: results[0] as Warehouse,
+      technicalLogEntries: results[1] as List<TechnicalLogEntry>,
+    );
   }
 }

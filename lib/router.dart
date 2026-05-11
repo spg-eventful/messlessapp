@@ -1,9 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
+import 'package:messless/screens/technical_log/qr_scanner_screen.dart';
+import 'package:messless/screens/technical_log/add_technical_log_entry.dart';
 import 'package:messless/screens/events/add_events.dart';
 import 'package:messless/screens/events/event_details.dart';
-import 'package:messless/screens/technicalLog/qr_scanner_screen.dart';
-import 'package:messless/screens/technicalLog/add_technical_log_entry.dart';
 import 'package:messless/screens/equipment/add_equipment.dart';
 import 'package:messless/screens/equipment/equipment.dart';
 import 'package:messless/screens/equipment/equipment_details.dart';
@@ -25,7 +25,6 @@ enum RouterDestinations {
   equipment(url: '/equipment'),
   addEquipment(url: '/addEquipment'),
   equipmentDetails(url: '/equipmentDetails/:id'),
-  editEquipment(url: '/editEquipment/:id'),
   wsTesting(url: '/wsTesting'),
   qrScanner(url: '/qrScanner'),
   addEvents(url: '/addEvents'),
