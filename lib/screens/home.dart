@@ -28,7 +28,7 @@ class HomeScreen extends StatelessWidget {
               _buildBigButton(
                 context,
                 label: "Events",
-                icon: Icons.event_note_rounded,
+                icon: Icons.festival_rounded,
                 color: const Color(0xFF96d1fb),
                 onPressed: () => context.push(RouterDestinations.events.url),
               ),
@@ -38,7 +38,7 @@ class HomeScreen extends StatelessWidget {
               _buildBigButton(
                 context,
                 label: "Equipment",
-                icon: Icons.event_note_rounded,
+                icon: Icons.inventory_2_rounded,
                 color: const Color(0xFF96d1fb),
                 onPressed: () => context.push(RouterDestinations.equipment.url),
               ),

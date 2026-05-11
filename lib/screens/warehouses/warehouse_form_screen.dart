@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../ws/schema/company/company.dart';
 import 'warehouse_ws.dart';
 
 class WarehouseFormScreen extends StatefulWidget {
@@ -19,7 +20,7 @@ class _WarehouseFormScreenState extends State<WarehouseFormScreen> {
   final _latController = TextEditingController();
   final _lngController = TextEditingController();
   int? _selectedCompanyId;
-  late final Future<List<Map<String, dynamic>>> _companiesFuture;
+  late final Future<List<Company>> _companiesFuture;
 
   late final Future<void> _initFuture;
 
@@ -44,7 +45,7 @@ class _WarehouseFormScreenState extends State<WarehouseFormScreen> {
     _lngController.text = (warehouse['longitude'] ?? '').toString();
   }
 
-  Future<List<Map<String, dynamic>>> _loadCompanies() {
+  Future<List<Company>> _loadCompanies() {
     return WarehouseWs.findCompanies();
   }
 
