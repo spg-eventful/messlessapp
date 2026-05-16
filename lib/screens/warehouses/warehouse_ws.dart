@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:messless/ws/backend_client.dart';
 
 class WarehouseWs {
-  static bool get isManagerOrHigher => _roleAsInt() >= 3;
+  static bool get isManagerOrHigher => roleAsInt() >= 3;
 
-  static bool get isAdmin => _roleAsInt() == 5;
+  static bool get isAdmin => roleAsInt() == 5;
 
   static int get currentCompanyId => _currentCompanyId();
   static int? _activeCompanyId;
@@ -136,7 +136,7 @@ class WarehouseWs {
     throw StateError('Invalid company format on user');
   }
 
-  static int _roleAsInt() {
+  static int roleAsInt() {
     final auth = BackendClient.authState.authenticatedConnection;
     final user = auth?.user as dynamic;
 
