@@ -38,7 +38,7 @@ class HomeScreen extends StatelessWidget {
               _buildBigButton(
                 context,
                 label: "Equipment",
-                icon: Icons.event_note_rounded,
+                icon: Icons.inventory,
                 color: const Color(0xFF96d1fb),
                 onPressed: () => context.push(RouterDestinations.equipment.url),
               ),
