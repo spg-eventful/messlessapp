@@ -1,12 +1,15 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:messless/screens/equipment/utils/fetch_equipment_details.dart';
 import 'package:messless/widgets/msls_appbar.dart';
 import 'package:messless/ws/schema/warehouse/warehouse.dart';
 import '../../ws/backend_client.dart';
 
 class AddEquipmentScreen extends StatefulWidget {
-  const AddEquipmentScreen({super.key});
+  final int? equipmentId;
+
+  const AddEquipmentScreen({super.key, this.equipmentId});
 
   @override
   State<AddEquipmentScreen> createState() => _AddEquipmentScreenState();
@@ -23,6 +26,30 @@ class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
   void initState() {
     super.initState();
     _warehouses = getWarehouses();
+    if (widget.equipmentId != null) {
+      _loadEquipmentData();
+    }
+  }
+
+  Future<void> _loadEquipmentData() async {
+    try {
+      final equipment = await EquipmentDetailsData.getEquipment(
+        widget.equipmentId!,
+      );
+      if (mounted) {
+        setState(() {
+          _labelController.text = equipment.label;
+          _belongsTo = equipment.belongsToWarehouse;
+          isEquipmentStorage = equipment.storage == null ? false : true;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Fehler beim Laden: $e')));
+      }
+    }
   }
 
   @override
@@ -33,6 +60,8 @@ class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isEditMode = widget.equipmentId != null;
+
     return Scaffold(
       appBar: const MslsAppbar(),
       body: SingleChildScrollView(
@@ -102,35 +131,38 @@ class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
                     ),
 
                     const SizedBox(height: 16),
-
-                    Material(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(8),
-                      child: SwitchListTile(
-                        title: const Text('Als Equipment-Lager markieren'),
-                        subtitle: const Text(
-                          'Kann dieses Equipment selbst andere Gegenstände beinhalten? (z.B. ein Case oder Rack)',
-                        ),
-                        secondary: Icon(
-                          isEquipmentStorage
-                              ? Icons.inventory_2
-                              : Icons.inventory_2_outlined,
-                          color: isEquipmentStorage
-                              ? Theme.of(context).colorScheme.primary
-                              : null,
-                        ),
-                        value: isEquipmentStorage,
-                        onChanged: (bool value) {
-                          setState(() {
-                            isEquipmentStorage = value;
-                          });
-                        },
+                    if (!isEditMode)
+                      Column(
+                        children: [
+                          Material(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(8),
+                            child: SwitchListTile(
+                              title: const Text('Als Equipment-Lager markieren'),
+                              subtitle: const Text(
+                                'Kann dieses Equipment selbst andere Gegenstände beinhalten? (z.B. ein Case oder Rack)',
+                              ),
+                              secondary: Icon(
+                                isEquipmentStorage
+                                    ? Icons.inventory_2
+                                    : Icons.inventory_2_outlined,
+                                color: isEquipmentStorage
+                                    ? Theme.of(context).colorScheme.primary
+                                    : null,
+                              ),
+                              value: isEquipmentStorage,
+                              onChanged: (bool value) {
+                                setState(() {
+                                  isEquipmentStorage = value;
+                                });
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
                       ),
-                    ),
-
-                    const SizedBox(height: 32),
 
                     FilledButton.icon(
                       onPressed: (_formKey.currentState?.validate() ?? false)
@@ -139,8 +171,12 @@ class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.all(16.0),
                       ),
-                      icon: const Icon(Icons.save),
-                      label: const Text("Equipment Speichern"),
+                      icon: Icon(isEditMode ? Icons.update : Icons.save),
+                      label: Text(
+                        isEditMode
+                            ? "Equipment Aktualisieren"
+                            : "Equipment Speichern",
+                      ),
                     ),
                   ],
                 ),
@@ -164,16 +200,28 @@ class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     try {
-      await BackendClient.service("equipments").create(
-        jsonEncode({
-          "label": _labelController.text,
-          "belongsToWarehouse": _belongsTo,
-          "isStorage": isEquipmentStorage,
-        }),
-      );
+      final body = {
+        "label": _labelController.text,
+        "belongsToWarehouse": _belongsTo,
+      };
+
+      if (widget.equipmentId == null) {
+        body["isStorage"] = isEquipmentStorage;
+        await BackendClient.service("equipments").create(jsonEncode(body));
+      } else {
+        body["\$id"] = widget.equipmentId;
+        await BackendClient.service("equipments").update(jsonEncode(body));
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Equipment erfolgreich erstellt')),
+          SnackBar(
+            content: Text(
+              widget.equipmentId == null
+                  ? 'Equipment erfolgreich erstellt'
+                  : 'Equipment erfolgreich aktualisiert',
+            ),
+          ),
         );
         context.go("/equipment");
       }

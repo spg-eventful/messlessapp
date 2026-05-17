@@ -161,11 +161,16 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                           value: equipment.longitude.toStringAsFixed(4),
                         ),
                         const SizedBox(width: 12),
-                        Expanded(
-                          child: _CompactInfo(
-                            label: 'Warehouse',
-                            value: warehouse.label,
-                          ),
+                        _CompactInfo(
+                          label: 'Warehouse',
+                          value: warehouse.label,
+                        ),
+                        const SizedBox(width: 12),
+                        _CompactInfo(
+                          label: 'Storage',
+                          value: equipment.storage == null
+                              ? 'Nein'
+                              : 'Ja',
                         ),
                       ],
                     ),
@@ -251,7 +256,7 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                     IconButton.filledTonal(
                       onPressed: () {
                         context.pushNamed(
-                          "Edit Equipment",
+                          "Equipment Edit",
                           pathParameters: {"id": widget.equipmentId.toString()},
                         );
                       },
@@ -293,7 +298,7 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 10,
-                    )
+                    ),
                   ],
                 ),
                 child: QrImageView(
@@ -343,18 +348,21 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
         final imageData = await painter.toImageData(1024);
         if (imageData == null) return;
 
-        // Erstelle ein Bild mit weißem Hintergrund, um Transparenz-Probleme (z.B. in WhatsApp) zu vermeiden
         final recorder = ui.PictureRecorder();
         final canvas = Canvas(recorder);
         final paint = Paint()..color = Colors.white;
         canvas.drawRect(const Rect.fromLTWH(0, 0, 1024, 1024), paint);
 
-        final codec = await ui.instantiateImageCodec(imageData.buffer.asUint8List());
+        final codec = await ui.instantiateImageCodec(
+          imageData.buffer.asUint8List(),
+        );
         final frame = await codec.getNextFrame();
         canvas.drawImage(frame.image, Offset.zero, Paint());
 
         final finalImage = await recorder.endRecording().toImage(1024, 1024);
-        final finalByteData = await finalImage.toByteData(format: ui.ImageByteFormat.png);
+        final finalByteData = await finalImage.toByteData(
+          format: ui.ImageByteFormat.png,
+        );
         if (finalByteData == null) return;
 
         final tempDir = await getTemporaryDirectory();
@@ -370,9 +378,9 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler beim Export: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Fehler beim Export: $e')));
       }
     }
   }
