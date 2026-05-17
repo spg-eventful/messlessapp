@@ -1,12 +1,10 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:messless/screens/events/utils/fetch_event_details.dart';
 import 'package:messless/widgets/msls_appbar.dart';
 
-import '../../ws/backend_client.dart';
 import '../../ws/schema/event/event.dart';
 
 class EventDetailsScreen extends StatefulWidget {
@@ -26,7 +24,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    _dataFuture = fetchEvent(widget.eventId);
+    _dataFuture = FetchEventDetails.fetchEvent(widget.eventId);
   }
 
   @override
@@ -144,14 +142,14 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                       child: FilledButton.icon(
                         onPressed: () {
                           context.pushNamed(
-                            "Add Technical Log Entry",
+                            "Event Edit",
                             pathParameters: {
                               "id": widget.eventId.toString(),
                             },
                           );
                         },
                         icon: const Icon(Icons.edit),
-                        label: const Text('Event bearbeitn'),
+                        label: const Text('Event bearbeiten'),
                       ),
                     ),
                   ],
@@ -162,20 +160,6 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
         },
       ),
     );
-  }
-
-  static Future<Event> fetchEvent(int id) async {
-    try {
-      var response = await BackendClient.service("events").get(id);
-      if (response.body == null || response.body
-          .toString()
-          .isEmpty) {
-        throw Exception("No data for warehouse $id");
-      }
-      return Event.fromJson(jsonDecode(response.body.toString()));
-    } catch (e) {
-      rethrow;
-    }
   }
 }
 

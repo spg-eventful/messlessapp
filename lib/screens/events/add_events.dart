@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:messless/screens/events/utils/fetch_event_details.dart';
 import 'package:messless/widgets/msls_appbar.dart';
 
 import '../../ws/backend_client.dart';
@@ -12,7 +13,9 @@ import '../warehouses/warehouse_ws.dart';
 enum LocationMode { currentLocation, manual }
 
 class AddEventsScreen extends StatefulWidget {
-  const AddEventsScreen({super.key});
+  final int? eventId;
+
+  const AddEventsScreen({super.key, this.eventId});
 
   @override
   State<AddEventsScreen> createState() => _AddEventsScreenState();
@@ -34,16 +37,44 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
   void initState() {
     super.initState();
     _companies = WarehouseWs.findCompanies();
+    if (widget.eventId != null) {
+      _loadEventData();
+    }
+  }
+
+  Future<void> _loadEventData() async {
+    try {
+      final fetchedEvent = await FetchEventDetails.fetchEvent(widget.eventId!);
+      if (mounted) {
+        setState(() {
+          _labelController.text = fetchedEvent.label;
+          _latitudeController.text = fetchedEvent.latitude.toString();
+          _longitudeController.text = fetchedEvent.longitude.toString();
+          _selectedMode = LocationMode.manual;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Fehler beim Laden des Events: $e')),
+        );
+      }
+    }
   }
 
   @override
   void dispose() {
     _labelController.dispose();
+    _latitudeController.dispose();
+    _longitudeController.dispose();
+    _companyIdController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final bool isEditMode = widget.eventId != null;
+
     return Scaffold(
       appBar: const MslsAppbar(),
       body: SingleChildScrollView(
@@ -74,20 +105,20 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
                     TextFormField(
                       controller: _labelController,
                       decoration: const InputDecoration(
-                        labelText: "Bezeichnung / Label",
-                        hintText: 'z.B. Mischpult Yamaha QL5',
+                        labelText: "Bezeichnung / Name",
+                        hintText: 'z. B. Spenger Rave',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.label_outline),
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Bitte geben Sie ein Label ein!';
+                          return 'Bitte geben Sie einen Namen ein!';
                         }
                         return null;
                       },
                     ),
 
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 16),
 
                     SegmentedButton<LocationMode>(
                       segments: [
@@ -119,11 +150,12 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
                     const SizedBox(height: 16),
 
                     if (WarehouseWs.isAdmin)
-                      DropdownButtonFormField(
-                        items: companies.map((Company warehouse) {
+                      DropdownButtonFormField<int>(
+                        initialValue: int.tryParse(_companyIdController.text),
+                        items: companies.map((Company company) {
                           return DropdownMenuItem<int>(
-                            value: warehouse.id,
-                            child: Text(warehouse.label),
+                            value: company.id,
+                            child: Text(company.label),
                           );
                         }).toList(),
                         onChanged: (int? newId) {
@@ -138,12 +170,12 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
                         ),
                         validator: (value) {
                           if (value == null) {
-                            return 'Bitte wählen Sie ein Lager aus!';
+                            return 'Bitte wählen Sie eine Company aus!';
                           }
                           return null;
                         },
                       ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 32),
 
                     FilledButton.icon(
                       onPressed: (_formKey.currentState?.validate() ?? false)
@@ -152,8 +184,10 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.all(16.0),
                       ),
-                      icon: const Icon(Icons.save),
-                      label: const Text("Equipment Speichern"),
+                      icon: Icon(isEditMode ? Icons.update : Icons.save),
+                      label: Text(
+                        isEditMode ? "Event Aktualisieren" : "Event Speichern",
+                      ),
                     ),
                   ],
                 ),
@@ -169,17 +203,29 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     try {
-      await BackendClient.service("events").create(
-        jsonEncode({
-          "label": _labelController.text,
-          "latitude": double.tryParse(_latitudeController.text),
-          "longitude": double.tryParse(_longitudeController.text),
-          "companyId": int.tryParse(_companyIdController.text),
-        }),
-      );
+      final body = {
+        "label": _labelController.text,
+        "latitude": double.tryParse(_latitudeController.text),
+        "longitude": double.tryParse(_longitudeController.text),
+        "companyId": int.tryParse(_companyIdController.text),
+      };
+
+      if (widget.eventId == null) {
+        await BackendClient.service("events").create(jsonEncode(body));
+      } else {
+        body["\$id"] = widget.eventId;
+        await BackendClient.service("events").update(jsonEncode(body));
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Event erfolgreich erstellt')),
+          SnackBar(
+            content: Text(
+              widget.eventId == null
+                  ? 'Event erfolgreich erstellt'
+                  : 'Event erfolgreich aktualisiert',
+            ),
+          ),
         );
         context.go("/events");
       }
@@ -228,9 +274,12 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
             label: Text(_isLocationLoading ? "Suche..." : "Standort abrufen"),
           ),
           if (_latitudeController.text.isNotEmpty)
-            Text(
-              "Lat: ${_latitudeController.text}, Lng: ${_longitudeController.text}",
-              style: Theme.of(context).textTheme.bodySmall,
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text(
+                "Lat: ${_latitudeController.text}, Lng: ${_longitudeController.text}",
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             ),
         ],
       );
@@ -240,20 +289,26 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
         Expanded(
           child: TextFormField(
             controller: _latitudeController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: const InputDecoration(
               labelText: 'Lat',
               border: OutlineInputBorder(),
             ),
+            validator: (value) =>
+                value == null || value.isEmpty ? 'Pflichtfeld' : null,
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: TextFormField(
             controller: _longitudeController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: const InputDecoration(
               labelText: 'Lng',
               border: OutlineInputBorder(),
             ),
+            validator: (value) =>
+                value == null || value.isEmpty ? 'Pflichtfeld' : null,
           ),
         ),
       ],

@@ -16,7 +16,6 @@ class EquipmentScreen extends StatefulWidget {
 
 class _EquipmentScreenState extends State<EquipmentScreen> {
   late Future<List<Equipment>> equipmentFuture;
-  bool _isExpanded = false;
 
   @override
   void initState() {
@@ -136,7 +135,7 @@ class _EquipmentScreenState extends State<EquipmentScreen> {
           labelBackgroundColor: Colors.transparent,
           labelShadow: [],
           shape: const CircleBorder(),
-          onTap: () => context.push(RouterDestinations.addEquipment.url),
+          onTap: () => context.push('/equipment/add'),
         ),
       ],
     );
