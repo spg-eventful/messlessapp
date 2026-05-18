@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:messless/screens/warehouse/warehouse_ws.dart';
+import 'package:messless/screens/company/company_ws.dart';
+import 'package:messless/ws/helper.dart';
+import 'package:messless/ws/schema/company/company.dart';
 
 class CompanyDetailScreen extends StatefulWidget {
   final int companyId;
@@ -32,7 +34,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
       appBar: AppBar(
         title: const Text('Company Details'),
         actions: [
-          if (WarehouseWs.isManagerOrHigher)
+          if (HelperWs.isManagerOrHigher)
             IconButton(
               icon: const Icon(Icons.delete, color: Colors.red),
               onPressed: () async {
@@ -43,8 +45,8 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
             ),
         ],
       ),
-      body: FutureBuilder<Map<String, dynamic>>(
-        future: WarehouseWs.get(widget.companyId),
+      body: FutureBuilder<Company>(
+        future: CompanyWs.getById(widget.companyId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -54,8 +56,8 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
           }
 
           final company = snapshot.data!;
-          final id = company['id'] ?? widget.companyId;
-          final name = company['name'] ?? 'Unbekannt';
+          final id = company.id;
+          final name = company.label;
 
           if (!_isEditing) {
             _nameController.text = name;
@@ -82,7 +84,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                if (WarehouseWs.isManagerOrHigher)
+                if (HelperWs.isManagerOrHigher)
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
