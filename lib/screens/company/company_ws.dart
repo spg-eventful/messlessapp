@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:messless/ws/helper.dart';
 
 import '../../ws/backend_client.dart';
@@ -32,4 +33,32 @@ class CompanyWs {
     return decoded.map((e) => Company.fromJson(e)).toList();
   }
 
+  static Future<Company> getById(int id) async {
+    final res = await BackendClient.service('companies').get(id);
+    HelperWs.ensureStatus(res.status, {200});
+    return Company.fromJson(jsonDecode(res.body.toString()));
+  }
+
+  static Future<void> update({
+    required int id,
+    required String name,
+    required double latitude,
+    required double longitude,
+  }) async {
+    final res = await BackendClient.service('companies').update(
+      jsonEncode({
+        "\$id": id,
+        "label": name,
+        "latitude": latitude,
+        "longitude": longitude,
+      }),
+    );
+
+    HelperWs.ensureStatus(res.status, {200});
+  }
+
+  static Future<void> delete(int id) async {
+    final res = await BackendClient.service('companies').delete(id);
+    HelperWs.ensureStatus(res.status, {200, 204});
+  }
 }

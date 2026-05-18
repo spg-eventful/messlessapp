@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:messless/screens/warehouse/warehouse_ws.dart';
+import 'package:messless/screens/company/company_ws.dart';
 
-import '../widgets/msls_appbar.dart';
+import '../../widgets/msls_appbar.dart';
 
 class CreateCompanyScreen extends StatefulWidget {
   const CreateCompanyScreen({super.key});
@@ -39,13 +39,11 @@ class _CreateCompanyScreenState extends State<CreateCompanyScreen> {
       final name = _nameController.text.trim();
       final lat = double.parse(_latController.text.trim());
       final lon = double.parse(_lonController.text.trim());
-      final companyid = WarehouseWs.activeCompanyId;
 
-      await WarehouseWs.create(
+      await CompanyWs.create(
         name: name,
         latitude: lat,
         longitude: lon,
-        companyId: companyid,
       );
 
       if (mounted) {
