@@ -2,14 +2,11 @@ import 'dart:convert';
 
 import 'package:messless/ws/backend_client.dart';
 import 'package:messless/ws/schema/warehouse/warehouse.dart';
+import '../../services/user_role.dart';
 
 import '../../ws/schema/company/company.dart';
 
 class WarehouseWs {
-  static bool get isManagerOrHigher => _roleAsInt() >= 3;
-
-  static bool get isAdmin => _roleAsInt() == 5;
-
   static int get currentCompanyId => _currentCompanyId();
   static int? _activeCompanyId;
 
@@ -91,7 +88,7 @@ class WarehouseWs {
   }
 
   static int get activeCompanyId {
-    if (isAdmin) {
+    if (UserRole.isAdmin) {
       if (_activeCompanyId == null) {
         throw StateError('Admin hat keine Company ausgewählt');
       }
@@ -115,50 +112,9 @@ class WarehouseWs {
     throw StateError('Invalid company format on user');
   }
 
-  static int _roleAsInt() {
-    final auth = BackendClient.authState.authenticatedConnection;
-    final user = auth?.user as dynamic;
-
-    if (user == null) return 0;
-
-    try {
-      final role = user.role;
-
-      if (role is int) return role;
-
-      if (role is String) {
-        switch (role) {
-          case 'Admin':
-            return 5;
-          case 'CompanyAdmin':
-            return 4;
-          case 'Manager':
-            return 3;
-          case 'Worker':
-            return 2;
-          case 'StageHand':
-            return 1;
-          default:
-            return 1;
-        }
-      }
-    } catch (_) {}
-
-    return 0;
-  }
-
   static void _ensureStatus(int? status, Set<int> ok) {
     if (status == null || !ok.contains(status)) {
       throw StateError('Unexpected warehouse response status: $status');
     }
-  }
-
-  static Map<String, dynamic> _asMap(String? body) {
-    final decoded = jsonDecode(body ?? '{}');
-    if (decoded is! Map) {
-      throw const FormatException('Expected a JSON object.');
-    }
-
-    return Map<String, dynamic>.from(decoded);
   }
 }

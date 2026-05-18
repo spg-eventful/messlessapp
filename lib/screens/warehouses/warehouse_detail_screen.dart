@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:messless/widgets/msls_location_picker.dart';
 import 'package:messless/ws/schema/warehouse/warehouse.dart';
 
+import '../../services/user_role.dart';
 import 'warehouse_ws.dart';
 
 class WarehouseDetailScreen extends StatefulWidget {
@@ -59,7 +60,7 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
       appBar: AppBar(
         title: const Text('warehouse Details'),
         actions: [
-          if (WarehouseWs.isManagerOrHigher)
+          if (UserRole.isManagerOrHigher)
             IconButton(
               icon: const Icon(Icons.delete, color: Colors.red),
               onPressed: () async {
@@ -153,7 +154,7 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                   ),
 
                 const SizedBox(height: 16),
-                if (WarehouseWs.isManagerOrHigher)
+                if (UserRole.isManagerOrHigher)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: SizedBox(
@@ -182,7 +183,7 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                         const SizedBox(height: 16),
                         MslsLocationPicker(
                           latitudeController: _latController,
-                          longitudeController: _lngController
+                          longitudeController: _lngController,
                         ),
                         const SizedBox(height: 12),
                         SizedBox(

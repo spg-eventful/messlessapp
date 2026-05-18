@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:messless/screens/events/utils/fetch_event_details.dart';
 import 'package:messless/widgets/msls_appbar.dart';
 
+import '../../services/user_role.dart';
 import '../../widgets/msls_location_picker.dart';
 import '../../ws/backend_client.dart';
 import '../../ws/schema/company/company.dart';
@@ -48,7 +49,10 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
           _labelController.text = fetchedEvent.label;
           _latitudeController.text = fetchedEvent.latitude.toString();
           _longitudeController.text = fetchedEvent.longitude.toString();
-          _initialTarget = LatLng(fetchedEvent.latitude, fetchedEvent.longitude);
+          _initialTarget = LatLng(
+            fetchedEvent.latitude,
+            fetchedEvent.longitude,
+          );
         });
       }
     } catch (e) {
@@ -125,11 +129,10 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
                     MslsLocationPicker(
                       latitudeController: _latitudeController,
                       longitudeController: _longitudeController,
-                      targetLocation: _initialTarget,
                     ),
                     const SizedBox(height: 16),
 
-                    if (WarehouseWs.isAdmin)
+                    if (UserRole.isAdmin)
                       DropdownButtonFormField<int>(
                         initialValue: int.tryParse(_companyIdController.text),
                         items: companies.map((Company company) {

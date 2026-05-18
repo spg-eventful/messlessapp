@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../services/user_role.dart';
 import '../../ws/schema/warehouse/warehouse.dart';
 import '../../ws/schema/company/company.dart';
 import 'warehouse_ws.dart';
@@ -17,7 +18,7 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
   late Future<List<Warehouse>> _warehousesFuture;
 
   bool get _isAdminSelectingCompany =>
-      WarehouseWs.isAdmin && _selectedCompanyId == null;
+      UserRole.isAdmin && _selectedCompanyId == null;
 
   @override
   void initState() {
@@ -39,9 +40,9 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            if (WarehouseWs.isAdmin && _selectedCompanyId == null) {
+            if (UserRole.isAdmin && _selectedCompanyId == null) {
               context.pop();
-            } else if (WarehouseWs.isAdmin) {
+            } else if (UserRole.isAdmin) {
               setState(() {
                 _selectedCompanyId = null;
                 WarehouseWs.clearActiveCompanyId();
@@ -56,7 +57,7 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
       body: _isAdminSelectingCompany ? _buildCompanies() : _buildWarehouses(),
 
       floatingActionButton:
-          !_isAdminSelectingCompany && WarehouseWs.isManagerOrHigher
+          !_isAdminSelectingCompany && UserRole.isManagerOrHigher
           ? FloatingActionButton(
               onPressed: () async {
                 final result = await context.push('/warehouses/new');
@@ -88,7 +89,7 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
           itemBuilder: (context, index) {
             final c = companies[index];
             final id = c.id;
-            final name = c.label ?? 'Company #$id';
+            final name = c.label;
 
             return Card(
               clipBehavior: Clip.hardEdge,
