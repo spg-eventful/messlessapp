@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:messless/ws/backend_client.dart';
 
@@ -26,14 +27,15 @@ class WarehouseWs {
     required String name,
     required double latitude,
     required double longitude,
-    required int companyId,
+    int? companyId,
   }) async {
+    final resolvedCompanyId = companyId ?? activeCompanyId;
     final res = await BackendClient.service('warehouses').create(
       jsonEncode({
         "label": name,
         "latitude": latitude,
         "longitude": longitude,
-        "companyId": companyId,
+        "companyId": resolvedCompanyId
       }),
     );
     _ensureStatus(res.status, {200, 201});
@@ -76,6 +78,34 @@ class WarehouseWs {
     }
 
     return decoded.map((e) => Map<String, dynamic>.from(e)).toList();
+  }
+
+  static Future<List<Map<String, dynamic>>> findUsers(int companyId) async {
+    final res = await BackendClient.service('users').get(companyId);
+
+    if (res.status != 200) {
+      throw HttpException('Fehler beim Laden der User. Status: ${res.status}');
+    }
+    final decoded = jsonDecode(res.body ?? '[]');
+    if (decoded is! List) {
+      throw const FormatException('Expected user list from backend');
+    }
+    return decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  static Future<void> createCompany({
+    required String name,
+    required double latitude,
+    required double longitude,
+  }) async {
+    final res = await BackendClient.service('companies').create(
+      jsonEncode({
+        "label": name,
+        "latitude": latitude,
+        "longitude": longitude,
+      }),
+    );
+    _ensureStatus(res.status, {200, 201});
   }
 
   static String titleOf(Map<String, dynamic> json) {

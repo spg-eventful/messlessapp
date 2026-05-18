@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
-import 'package:messless/screens/technical_log/qr_scanner_screen.dart';
-import 'package:messless/screens/technical_log/add_technical_log_entry.dart';
+import 'package:messless/screens/company/company_list_screen.dart';
+import 'package:messless/screens/create_company.dart';
 import 'package:messless/screens/equipment/add_equipment.dart';
 import 'package:messless/screens/equipment/equipment.dart';
 import 'package:messless/screens/equipment/equipment_details.dart';
@@ -9,9 +9,11 @@ import 'package:messless/screens/events.dart';
 import 'package:messless/screens/home.dart';
 import 'package:messless/screens/login.dart';
 import 'package:messless/screens/settings.dart';
-import 'package:messless/screens/warehouses/warehouse_detail_screen.dart';
-import 'package:messless/screens/warehouses/warehouse_form_screen.dart';
-import 'package:messless/screens/warehouses/warehouses_screen.dart';
+import 'package:messless/screens/technical_log/add_technical_log_entry.dart';
+import 'package:messless/screens/technical_log/qr_scanner_screen.dart';
+import 'package:messless/screens/warehouse/warehouse_create_screen.dart';
+import 'package:messless/screens/warehouse/warehouse_detail_screen.dart';
+import 'package:messless/screens/warehouse/warehouses_list_screen.dart';
 import 'package:messless/screens/ws.dart';
 
 enum RouterDestinations {
@@ -25,7 +27,9 @@ enum RouterDestinations {
   equipmentDetails(url: '/equipmentDetails/:id'),
   wsTesting(url: '/wsTesting'),
   qrScanner(url: '/qrScanner'),
-  addTechnicalLogEntry(url: '/addTechnicalLogEntry/:id');
+  addTechnicalLogEntry(url: '/addTechnicalLogEntry/:id'),
+  companies(url: '/companies'),
+  addCompany(url: '/add');
 
   final String url;
 
@@ -68,6 +72,18 @@ final goRouter = GoRouter(
           path: RouterDestinations.events.withoutLeadingSlash(),
           name: "Events",
           builder: (context, state) => const EventsScreens(),
+        ),
+        GoRoute(
+            path: RouterDestinations.companies.withoutLeadingSlash(),
+            name: "Companies",
+            builder: (context, state) => const CompanyScreen(),
+            routes: [
+              GoRoute(
+                path: RouterDestinations.addCompany.withoutLeadingSlash(),
+                name: "Add Company",
+                builder: (context, state) => const CreateCompanyScreen(),
+              ),
+            ]
         ),
         GoRoute(
           path: RouterDestinations.warehouses.withoutLeadingSlash(),
