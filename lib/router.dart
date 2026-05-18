@@ -14,6 +14,9 @@ import 'package:messless/screens/login.dart';
 import 'package:messless/screens/settings.dart';
 import 'package:messless/screens/technical_log/add_technical_log_entry.dart';
 import 'package:messless/screens/technical_log/qr_scanner_screen.dart';
+import 'package:messless/screens/user/user_create_screen.dart';
+import 'package:messless/screens/user/user_detail_screen.dart';
+import 'package:messless/screens/user/user_overview_screen.dart';
 import 'package:messless/screens/warehouse/warehouse_create_screen.dart';
 import 'package:messless/screens/warehouse/warehouse_detail_screen.dart';
 import 'package:messless/screens/warehouse/warehouse_overview_screen.dart';
@@ -37,7 +40,9 @@ enum RouterDestinations {
   companies(url: '/companies'),
   addCompany(url: '/add'),
   detailsCompany(url: '/:id'),
-  users(url: '/users');
+  users(url: '/users'),
+  addUser(url: '/add'),
+  detailsUser(url: '/:id');
 
   final String url;
 
@@ -116,11 +121,24 @@ final goRouter = GoRouter(
             ]
         ),
         GoRoute(
-          path: RouterDestinations.detailsCompany.withoutLeadingSlash(),
+            path: RouterDestinations.users.withoutLeadingSlash(),
           name: "Users",
           builder: (context, state) =>
-              CompanyDetailScreen(
-                  companyId: int.parse(state.pathParameters['id']!)),
+              UserScreen(),
+            routes: [
+              GoRoute(
+                path: RouterDestinations.addUser.withoutLeadingSlash(),
+                name: "Add User",
+                builder: (context, state) => const CreateUserScreen(),
+              ),
+              GoRoute(
+                path: RouterDestinations.detailsUser.withoutLeadingSlash(),
+                name: "User Details",
+                builder: (context, state) =>
+                    UserDetailScreen(
+                        userId: int.parse(state.pathParameters['id']!)),
+              ),
+            ]
         ),
         GoRoute(
           path: RouterDestinations.warehouses.withoutLeadingSlash(),
@@ -130,23 +148,21 @@ final goRouter = GoRouter(
             GoRoute(
               path: 'new',
               name: "Warehouse Create",
-              builder: (context, state) => const WarehouseFormScreen(),
+              builder: (context, state) => const CreateWarehouseScreen(),
             ),
             GoRoute(
               path: ':id',
               name: "Warehouse Detail",
-              builder: (context, state) {
-                final id = int.parse(state.pathParameters['id']!);
-                return WarehouseDetailScreen(warehouseId: id);
-              },
+              builder: (context, state) =>
+                  WarehouseDetailScreen(
+                      warehouseId: int.parse(state.pathParameters['id']!)),
               routes: [
                 GoRoute(
                   path: 'edit',
                   name: "Warehouse Edit",
-                  builder: (context, state) {
-                    final id = int.parse(state.pathParameters['id']!);
-                    return WarehouseFormScreen(warehouseId: id);
-                  },
+                    builder: (context, state) =>
+                        CreateWarehouseScreen(
+                            warehouseId: int.parse(state.pathParameters['id']!))
                 ),
               ],
             ),

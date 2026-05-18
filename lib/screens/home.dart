@@ -9,15 +9,15 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final role = HelperWs.roleAsInt();
-    final isAdmin = role >= 5;
+    final isAdmin = HelperWs.isAdmin;
+    final isManagerOrHigher = HelperWs.isManagerOrHigher;
     return Scaffold(
       appBar: MslsAppbar(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
-          child: isAdmin
-              ? _buildAdminDashboard(context)
+          child: isManagerOrHigher
+              ? _buildDashboard(context, isAdmin: isAdmin)
               : _buildDefaultView(context),
         ),
       ),
@@ -130,7 +130,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAdminDashboard(BuildContext context) {
+  Widget _buildDashboard(BuildContext context, {required bool isAdmin}) {
     return Column(
       children: [
         const Spacer(),
@@ -177,14 +177,18 @@ class HomeScreen extends StatelessWidget {
 
             _buildDashboardCard(
               context,
-              label: "Admin",
-              icon: Icons.admin_panel_settings_rounded,
+              label: isAdmin ? "Admin" : "Users",
+              icon: isAdmin ? Icons.admin_panel_settings_rounded : Icons
+                  .people_alt_rounded,
               color: const Color(0xFF1E293B),
-              iconColor: Colors.orangeAccent,
-              onPressed: () =>
-                  context.push(
-                    RouterDestinations.companies.url,
-                  ),
+              iconColor: isAdmin ? Colors.orangeAccent : Colors.tealAccent,
+              onPressed: () {
+                if (isAdmin) {
+                  context.push(RouterDestinations.companies.url);
+                } else {
+                  context.pushNamed("Users");
+                }
+              },
             ),
           ],
         ),

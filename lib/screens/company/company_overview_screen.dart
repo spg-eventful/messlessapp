@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messless/widgets/msls_appbar.dart';
 
+import '../../ws/helper.dart';
 import '../../ws/schema/company/company.dart';
+import '../../ws/schema/user/user.dart';
+import '../user/user_ws.dart';
 import 'company_ws.dart';
 
 class CompanyScreen extends StatefulWidget {
@@ -13,20 +16,34 @@ class CompanyScreen extends StatefulWidget {
 }
 
 class _CompanyScreenState extends State<CompanyScreen> {
-  late Future<List<Company>> _companiesFuture;
+  late Future<Map<String, dynamic>> _dataFuture;
 
   @override
   void initState() {
     super.initState();
-    _companiesFuture = CompanyWs.find();
+    _loadData();
+  }
+
+  void _loadData() {
+    setState(() {
+      _dataFuture = Future.wait([
+        CompanyWs.find(),
+        UserWs.find(),
+      ]).then((results) {
+        return {
+          'companies': results[0] as List<Company>,
+          'users': results[1] as List<User>,
+        };
+      });
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const MslsAppbar(),
-      body: FutureBuilder<List<Company>>(
-        future: _companiesFuture,
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: _dataFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -34,11 +51,16 @@ class _CompanyScreenState extends State<CompanyScreen> {
           if (snapshot.hasError) {
             return Center(child: Text('Fehler: ${snapshot.error}'));
           }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('Keine Companies gefunden.'));
+          if (!snapshot.hasData) {
+            return const Center(child: Text('Keine Daten gefunden.'));
           }
 
-          final companies = snapshot.data!;
+          final companies = snapshot.data!['companies'] as List<Company>;
+          final allUsers = snapshot.data!['users'] as List<User>;
+
+          if (companies.isEmpty) {
+            return const Center(child: Text('Keine Companies gefunden.'));
+          }
 
           companies.sort((a, b) =>
               a.label.toLowerCase().compareTo(b.label.toLowerCase()));
@@ -50,14 +72,18 @@ class _CompanyScreenState extends State<CompanyScreen> {
             itemBuilder: (context, index) {
               final company = companies[index];
               final name = company.label;
-              final employeesCount = '0';
               final companyId = company.id;
+
+              final employeesCount = allUsers
+                  .where((u) => u.company == companyId)
+                  .length;
 
               return Card(
                 clipBehavior: Clip.hardEdge,
                 child: InkWell(
                   onTap: () {
-                    context.pushNamed("Company Users", extra: company);
+                    HelperWs.setActiveCompanyId(companyId);
+                    context.pushNamed("Users", extra: company);
                   },
                   child: ListTile(
                     leading: CircleAvatar(
@@ -82,9 +108,7 @@ class _CompanyScreenState extends State<CompanyScreen> {
                           pathParameters: {"id": companyId.toString()},
                         );
                         if (refreshed == true && mounted) {
-                          setState(() {
-                            _companiesFuture = CompanyWs.find();
-                          });
+                          _loadData();
                         }
                       },
                     ),
@@ -101,9 +125,7 @@ class _CompanyScreenState extends State<CompanyScreen> {
         onPressed: () async {
           await context.pushNamed('Add Company');
           if (mounted) {
-            setState(() {
-              _companiesFuture = CompanyWs.find();
-            });
+            _loadData();
           }
         },
         child: const Icon(Icons.add),

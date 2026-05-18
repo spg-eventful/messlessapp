@@ -7,7 +7,6 @@ import '../../ws/schema/company/company.dart';
 
 class CompanyWs {
 
-
   static Future<void> create({
     required String name,
     required double latitude,
