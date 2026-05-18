@@ -8,8 +8,8 @@ class Company {
 
   final int id;
   final String label;
-  final double longitude;
   final double latitude;
+  final double longitude;
 
   factory Company.fromJson(Map<String, dynamic> json) =>
       _$CompanyFromJson(json);

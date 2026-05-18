@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../ws/schema/company/company.dart';
 import 'warehouse_ws.dart';
 
 class WarehousesScreen extends StatefulWidget {
@@ -70,7 +71,7 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
   }
 
   Widget _buildCompanies() {
-    return FutureBuilder<List<Map<String, dynamic>>>(
+    return FutureBuilder<List<Company>>(
       future: WarehouseWs.findCompanies(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
@@ -84,8 +85,8 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
           separatorBuilder: (_, __) => const Divider(height: 1),
           itemBuilder: (context, index) {
             final c = companies[index];
-            final id = c['id'];
-            final name = c['label'] ?? 'Company #$id';
+            final id = c.id;
+            final name = c.label ?? 'Company #$id';
 
             return ListTile(
               title: Text(name),

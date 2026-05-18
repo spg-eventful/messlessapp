@@ -65,32 +65,24 @@ class HomeScreen extends StatelessWidget {
                 RouterDestinations.warehouses.url,
               ),
         ),
-
         const SizedBox(height: 16),
+         _buildBigButton(
+           context,
+           label: "Events",
+           icon: Icons.festival_rounded,
+           color: const Color(0xFF96d1fb),
+           onPressed: () => context.push(RouterDestinations.events.url),
+         ),
 
-        _buildBigButton(
-          context,
-          label: "Events",
-          icon: Icons.event_note_rounded,
-          color: const Color(0xFF96d1fb),
-          onPressed: () =>
-              context.push(
-                RouterDestinations.events.url,
-              ),
-        ),
-
-        const SizedBox(height: 16),
-
-        _buildBigButton(
-          context,
-          label: "Equipment",
-          icon: Icons.precision_manufacturing_rounded,
-          color: const Color(0xFF96d1fb),
-          onPressed: () =>
-              context.push(
-                RouterDestinations.equipment.url,
-              ),
-        ),
+         //TODO: this button is just for testing, remove it later
+         const SizedBox(height: 16),
+         _buildBigButton(
+           context,
+           label: "Equipment",
+           icon: Icons.inventory_2_rounded,
+           color: const Color(0xFF96d1fb),
+           onPressed: () => context.push(RouterDestinations.equipment.url),
+         ),
       ],
     );
   }

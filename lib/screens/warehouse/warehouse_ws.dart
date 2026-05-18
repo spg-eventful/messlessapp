@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:messless/ws/backend_client.dart';
 
+import '../../ws/schema/company/company.dart';
+
 class WarehouseWs {
   static bool get isManagerOrHigher => roleAsInt() >= 3;
 
@@ -66,7 +68,7 @@ class WarehouseWs {
     _ensureStatus(res.status, {200, 204});
   }
 
-  static Future<List<Map<String, dynamic>>> findCompanies() async {
+  static Future<List<Company>> findCompanies() async {
     final res = await BackendClient.service('companies').find();
 
     _ensureStatus(res.status, {200});
@@ -77,7 +79,7 @@ class WarehouseWs {
       throw const FormatException('Expected company list');
     }
 
-    return decoded.map((e) => Map<String, dynamic>.from(e)).toList();
+    return decoded.map((e) => Company.fromJson(e)).toList();
   }
 
   static Future<List<Map<String, dynamic>>> findUsers(int companyId) async {
@@ -190,7 +192,7 @@ class WarehouseWs {
           case 'StageHand':
             return 1;
           default:
-            return 0;
+            return 1;
         }
       }
     } catch (_) {}

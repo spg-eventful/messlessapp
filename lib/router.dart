@@ -2,10 +2,14 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messless/screens/company/company_list_screen.dart';
 import 'package:messless/screens/create_company.dart';
+import 'package:messless/screens/events/add_events.dart';
+import 'package:messless/screens/events/event_details.dart';
+import 'package:messless/screens/technicalLog/qr_scanner_screen.dart';
+import 'package:messless/screens/technicalLog/add_technical_log_entry.dart';
 import 'package:messless/screens/equipment/add_equipment.dart';
 import 'package:messless/screens/equipment/equipment.dart';
 import 'package:messless/screens/equipment/equipment_details.dart';
-import 'package:messless/screens/events.dart';
+import 'package:messless/screens/events/events.dart';
 import 'package:messless/screens/home.dart';
 import 'package:messless/screens/login.dart';
 import 'package:messless/screens/settings.dart';
@@ -25,9 +29,12 @@ enum RouterDestinations {
   equipment(url: '/equipment'),
   addEquipment(url: '/addEquipment'),
   equipmentDetails(url: '/equipmentDetails/:id'),
+  editEquipment(url: '/editEquipment/:id'),
   wsTesting(url: '/wsTesting'),
   qrScanner(url: '/qrScanner'),
+  addEvents(url: '/addEvents'),
   addTechnicalLogEntry(url: '/addTechnicalLogEntry/:id'),
+  eventDetails(url: '/eventDetails/:id'),
   companies(url: '/companies'),
   addCompany(url: '/add');
 
@@ -71,8 +78,23 @@ final goRouter = GoRouter(
         GoRoute(
           path: RouterDestinations.events.withoutLeadingSlash(),
           name: "Events",
-          builder: (context, state) => const EventsScreens(),
+          builder: (context, state) => const EventsScreen(),
         ),
+        GoRoute(
+          path: RouterDestinations.addEvents.withoutLeadingSlash(),
+          name: "Events hinzufügen",
+          builder: (context, state) => const AddEventsScreen(),
+        ),
+        GoRoute(
+          path: RouterDestinations.eventDetails.withoutLeadingSlash(),
+          name: "Event Details",
+          builder: (context, state) {
+            final String idString = state.pathParameters['id']!;
+            final int id = int.parse(idString);
+            return EventDetailsScreen(eventId: id);
+          },
+        ),
+
         GoRoute(
             path: RouterDestinations.companies.withoutLeadingSlash(),
             name: "Companies",
