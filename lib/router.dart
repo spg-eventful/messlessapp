@@ -1,7 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messless/screens/company/company_create_screen.dart';
-import 'package:messless/screens/company/company_list_screen.dart';
+import 'package:messless/screens/company/company_detail_screen.dart';
+import 'package:messless/screens/company/company_overview_screen.dart';
 import 'package:messless/screens/equipment/add_equipment.dart';
 import 'package:messless/screens/equipment/equipment.dart';
 import 'package:messless/screens/equipment/equipment_details.dart';
@@ -15,7 +16,7 @@ import 'package:messless/screens/technical_log/add_technical_log_entry.dart';
 import 'package:messless/screens/technical_log/qr_scanner_screen.dart';
 import 'package:messless/screens/warehouse/warehouse_create_screen.dart';
 import 'package:messless/screens/warehouse/warehouse_detail_screen.dart';
-import 'package:messless/screens/warehouse/warehouses_overview_screen.dart';
+import 'package:messless/screens/warehouse/warehouse_overview_screen.dart';
 import 'package:messless/screens/ws.dart';
 
 enum RouterDestinations {
@@ -34,7 +35,9 @@ enum RouterDestinations {
   addTechnicalLogEntry(url: '/addTechnicalLogEntry/:id'),
   eventDetails(url: '/eventDetails/:id'),
   companies(url: '/companies'),
-  addCompany(url: '/add');
+  addCompany(url: '/add'),
+  detailsCompany(url: '/:id'),
+  users(url: '/users');
 
   final String url;
 
@@ -103,7 +106,21 @@ final goRouter = GoRouter(
                 name: "Add Company",
                 builder: (context, state) => const CreateCompanyScreen(),
               ),
+              GoRoute(
+                path: RouterDestinations.detailsCompany.withoutLeadingSlash(),
+                name: "Company Details",
+                builder: (context, state) =>
+                    CompanyDetailScreen(
+                        companyId: int.parse(state.pathParameters['id']!)),
+              ),
             ]
+        ),
+        GoRoute(
+          path: RouterDestinations.detailsCompany.withoutLeadingSlash(),
+          name: "Users",
+          builder: (context, state) =>
+              CompanyDetailScreen(
+                  companyId: int.parse(state.pathParameters['id']!)),
         ),
         GoRoute(
           path: RouterDestinations.warehouses.withoutLeadingSlash(),
