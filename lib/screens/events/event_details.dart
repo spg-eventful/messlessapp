@@ -76,6 +76,8 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                       markers: [
                         Marker(
                           point: displayLocation,
+                          width: 48,
+                          height: 48,
                           alignment: Alignment.topCenter,
                           child: const Icon(
                             Icons.location_on,

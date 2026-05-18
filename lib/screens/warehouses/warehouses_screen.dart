@@ -82,8 +82,9 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
         final companies = snapshot.data!;
 
         return ListView.separated(
+          padding: const EdgeInsets.all(8),
           itemCount: companies.length,
-          separatorBuilder: (_, __) => const Divider(height: 1),
+          separatorBuilder: (_, __) => const SizedBox(height: 2),
           itemBuilder: (context, index) {
             final c = companies[index];
             final id = c.id;
@@ -137,8 +138,9 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
         }
 
         return ListView.separated(
+          padding: const EdgeInsets.all(8),
           itemCount: warehouses.length,
-          separatorBuilder: (_, __) => const Divider(height: 1),
+          separatorBuilder: (_, __) => const SizedBox(height: 2),
           itemBuilder: (context, index) {
             final w = warehouses[index];
 

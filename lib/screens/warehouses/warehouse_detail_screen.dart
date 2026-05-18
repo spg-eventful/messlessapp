@@ -182,8 +182,7 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                         const SizedBox(height: 16),
                         MslsLocationPicker(
                           latitudeController: _latController,
-                          longitudeController: _lngController,
-                          targetLocation: LatLng(lat, lng),
+                          longitudeController: _lngController
                         ),
                         const SizedBox(height: 12),
                         SizedBox(
