@@ -36,8 +36,8 @@ class _MslsLocationPickerState extends State<MslsLocationPicker> {
     _selectedMode = widget.isLocked
         ? MslsLocationMode.target
         : (widget.latitudeController.text.isNotEmpty
-            ? MslsLocationMode.manual
-            : MslsLocationMode.currentLocation);
+              ? MslsLocationMode.manual
+              : MslsLocationMode.currentLocation);
 
     if (_selectedMode == MslsLocationMode.currentLocation) {
       _fetchAndSetLocation();
@@ -52,7 +52,11 @@ class _MslsLocationPickerState extends State<MslsLocationPicker> {
         widget.latitudeController.text = position.latitude.toString();
         widget.longitudeController.text = position.longitude.toString();
       });
-      _moveMapToCurrent();
+      // Nur bewegen, wenn wir uns in einem Modus befinden, der die Karte anzeigt
+      if (_selectedMode == MslsLocationMode.map ||
+          _selectedMode == MslsLocationMode.target) {
+        _moveMapToCurrent();
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -65,10 +69,20 @@ class _MslsLocationPickerState extends State<MslsLocationPicker> {
   }
 
   void _moveMapToCurrent() {
-    final lat = double.tryParse(widget.latitudeController.text);
-    final lng = double.tryParse(widget.longitudeController.text);
+    final latStr = widget.latitudeController.text.replaceAll(',', '.');
+    final lngStr = widget.longitudeController.text.replaceAll(',', '.');
+    final lat = double.tryParse(latStr);
+    final lng = double.tryParse(lngStr);
+
     if (lat != null && lng != null) {
-      _mapController.move(LatLng(lat, lng), 13.0);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        try {
+          _mapController.move(LatLng(lat, lng), 13.0);
+        } catch (e) {
+          debugPrint("MapController noch nicht bereit: $e");
+        }
+      });
     }
   }
 
@@ -119,10 +133,12 @@ class _MslsLocationPickerState extends State<MslsLocationPicker> {
               _selectedMode = val.first;
               if (_selectedMode == MslsLocationMode.target &&
                   widget.targetLocation != null) {
-                widget.latitudeController.text =
-                    widget.targetLocation!.latitude.toString();
-                widget.longitudeController.text =
-                    widget.targetLocation!.longitude.toString();
+                widget.latitudeController.text = widget.targetLocation!.latitude
+                    .toString();
+                widget.longitudeController.text = widget
+                    .targetLocation!
+                    .longitude
+                    .toString();
               } else if (_selectedMode == MslsLocationMode.currentLocation) {
                 _fetchAndSetLocation();
               }
@@ -169,11 +185,9 @@ class _MslsLocationPickerState extends State<MslsLocationPicker> {
     final lngStr = widget.longitudeController.text.replaceAll(',', '.');
 
     final lat = double.tryParse(latStr) ??
-        widget.targetLocation?.latitude ??
-        48.2082;
+        widget.targetLocation!.latitude;
     final lng = double.tryParse(lngStr) ??
-        widget.targetLocation?.longitude ??
-        16.3738;
+        widget.targetLocation!.longitude;
     final point = LatLng(lat, lng);
 
     return SizedBox(
@@ -199,7 +213,11 @@ class _MslsLocationPickerState extends State<MslsLocationPicker> {
                   width: 40,
                   height: 40,
                   alignment: Alignment.topCenter,
-                  child: const Icon(Icons.location_on, color: Colors.red, size: 40),
+                  child: const Icon(
+                    Icons.location_on,
+                    color: Colors.red,
+                    size: 40,
+                  ),
                 ),
               ],
             ),

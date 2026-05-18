@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:messless/screens/equipment/utils/fetch_equipment_details.dart';
 import 'package:messless/widgets/msls_appbar.dart';
+import 'package:messless/widgets/msls_location_picker.dart';
 import 'package:messless/ws/schema/warehouse/warehouse.dart';
 import '../../ws/backend_client.dart';
 
@@ -18,9 +20,13 @@ class AddEquipmentScreen extends StatefulWidget {
 class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _labelController = TextEditingController();
+  final TextEditingController _latitudeController = TextEditingController();
+  final TextEditingController _longitudeController = TextEditingController();
+
   bool isEquipmentStorage = false;
   int? _belongsTo;
   late Future<List<Warehouse>> _warehouses;
+  LatLng? _initialTarget;
 
   @override
   void initState() {
@@ -33,14 +39,18 @@ class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
 
   Future<void> _loadEquipmentData() async {
     try {
-      final equipment = await EquipmentDetailsData.getEquipment(
+      final equipmentDetails = await EquipmentDetailsData.getEquipment(
         widget.equipmentId!,
       );
+      final equipment = equipmentDetails.equipment;
       if (mounted) {
         setState(() {
-          _labelController.text = equipment.equipment.label;
-          _belongsTo = equipment.equipment.belongsToWarehouse;
-          isEquipmentStorage = equipment.equipment.storage == null ? false : true;
+          _labelController.text = equipment.label;
+          _latitudeController.text = equipment.latitude.toString();
+          _longitudeController.text = equipment.longitude.toString();
+          _belongsTo = equipment.belongsToWarehouse;
+          isEquipmentStorage = equipment.storage != null;
+          _initialTarget = LatLng(equipment.latitude, equipment.longitude);
         });
       }
     } catch (e) {
@@ -55,6 +65,8 @@ class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
   @override
   void dispose() {
     _labelController.dispose();
+    _latitudeController.dispose();
+    _longitudeController.dispose();
     super.dispose();
   }
 
