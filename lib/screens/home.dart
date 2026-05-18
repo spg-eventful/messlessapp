@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messless/router.dart';
-import 'package:messless/screens/warehouse/warehouse_ws.dart';
 import 'package:messless/widgets/msls_appbar.dart';
+import 'package:messless/ws/helper.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final role = WarehouseWs.roleAsInt();
+    final role = HelperWs.roleAsInt();
     final isAdmin = role >= 5;
     return Scaffold(
       appBar: MslsAppbar(),
