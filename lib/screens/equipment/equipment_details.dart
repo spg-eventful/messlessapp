@@ -1,15 +1,15 @@
-import 'dart:io';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:messless/screens/equipment/utils/export_qr_codes.dart';
 import 'package:messless/screens/equipment/utils/fetch_equipment_details.dart';
+import 'package:messless/services/user_role.dart';
 import 'package:messless/widgets/msls_appbar.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:share_plus/share_plus.dart';
+
+import '../../ws/backend_client.dart';
 
 class EquipmentDetailsScreen extends StatefulWidget {
   final int equipmentId;
@@ -41,7 +41,57 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
               if (value == 'show_qr') {
                 _showQRDialog(context, widget.equipmentId);
               } else if (value == 'share_qr') {
-                _exportQrCode(context, widget.equipmentId);
+                _dataFuture
+                    .then((data) {
+                      if (mounted) {
+                        ExportQrCodes.exportEquipmentQrCodes(context, [
+                          data.equipment,
+                        ]);
+                      }
+                    })
+                    .catchError((e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("Daten noch nicht geladen ${e}"),
+                          ),
+                        );
+                      }
+                    });
+              } else if (value == 'delete') {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Equipment löschen?'),
+                    content: const Text(
+                      'Möchten Sie dieses Equipment wirklich dauerhaft löschen?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Abbrechen'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          deleteEquipment(widget.equipmentId).catchError((e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  "Equipment konnte nicht gelöscht werden: ${e}",
+                                ),
+                              ),
+                            );
+                          });
+                          context.pop();
+                        },
+                        child: const Text(
+                          'Löschen',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
               }
             },
             itemBuilder: (context) => [
@@ -61,6 +111,15 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
+              if (UserRole.isManagerOrHigher)
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: ListTile(
+                    leading: Icon(Icons.delete),
+                    title: Text('Equipment löschen'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
             ],
           ),
         ],
@@ -170,9 +229,7 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                         const SizedBox(width: 12),
                         _CompactInfo(
                           label: 'Storage',
-                          value: equipment.storage == null
-                              ? 'Nein'
-                              : 'Ja',
+                          value: equipment.storage == null ? 'Nein' : 'Ja',
                         ),
                       ],
                     ),
@@ -324,66 +381,10 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
     );
   }
 
-  Future<void> _exportQrCode(BuildContext context, int equipmentId) async {
-    try {
-      final qrValidationResult = QrValidator.validate(
-        data: equipmentId.toString(),
-        version: QrVersions.auto,
-        errorCorrectionLevel: QrErrorCorrectLevel.L,
-      );
-
-      if (qrValidationResult.status == QrValidationStatus.valid) {
-        final qrCode = qrValidationResult.qrCode!;
-        final painter = QrPainter.withQr(
-          qr: qrCode,
-          eyeStyle: const QrEyeStyle(
-            eyeShape: QrEyeShape.square,
-            color: ui.Color(0xFF000000),
-          ),
-          dataModuleStyle: const QrDataModuleStyle(
-            dataModuleShape: QrDataModuleShape.square,
-            color: ui.Color(0xFF000000),
-          ),
-          gapless: true,
-        );
-
-        final imageData = await painter.toImageData(1024);
-        if (imageData == null) return;
-
-        final recorder = ui.PictureRecorder();
-        final canvas = Canvas(recorder);
-        final paint = Paint()..color = Colors.white;
-        canvas.drawRect(const Rect.fromLTWH(0, 0, 1024, 1024), paint);
-
-        final codec = await ui.instantiateImageCodec(
-          imageData.buffer.asUint8List(),
-        );
-        final frame = await codec.getNextFrame();
-        canvas.drawImage(frame.image, Offset.zero, Paint());
-
-        final finalImage = await recorder.endRecording().toImage(1024, 1024);
-        final finalByteData = await finalImage.toByteData(
-          format: ui.ImageByteFormat.png,
-        );
-        if (finalByteData == null) return;
-
-        final tempDir = await getTemporaryDirectory();
-        final file = await File('${tempDir.path}/qr_$equipmentId.png').create();
-        await file.writeAsBytes(finalByteData.buffer.asUint8List());
-
-        await SharePlus.instance.share(
-          ShareParams(
-            files: [XFile(file.path)],
-            text: 'QR-Code für Equipment ID: $equipmentId',
-          ),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Fehler beim Export: $e')));
-      }
+  static Future<void> deleteEquipment(int id) async {
+    final res = await BackendClient.service('equipments').delete(id);
+    if (res.status != 200 && res.status != 204) {
+      throw StateError("couldn't delete Equipment ${res.body}");
     }
   }
 }

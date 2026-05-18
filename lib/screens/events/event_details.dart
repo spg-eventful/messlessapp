@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:messless/router.dart';
 import 'package:messless/screens/events/utils/fetch_event_details.dart';
 import 'package:messless/services/history_service.dart';
 import 'package:messless/widgets/msls_appbar.dart';
 
+import '../../services/user_role.dart';
+import '../../ws/backend_client.dart';
 import '../../ws/schema/event/event.dart';
 
 class EventDetailsScreen extends StatefulWidget {
@@ -34,7 +37,50 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: MslsAppbar(),
+      appBar: MslsAppbar(
+        actions: [
+          if (UserRole.isManagerOrHigher)
+            IconButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Event löschen?'),
+                    content: const Text(
+                      'Möchten Sie dieses Event wirklich dauerhaft löschen?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => context.pop(),
+                        child: const Text('Abbrechen'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          deleteEvent(widget.eventId).catchError((e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  "Event konnte nicht gelöscht werden: ${e}",
+                                ),
+                              ),
+                            );
+                          });
+                          context.go(RouterDestinations.events.url);
+                        },
+                        child: const Text(
+                          'Löschen',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              icon: Icon(Icons.delete),
+              color: Colors.red,
+            ),
+        ],
+      ),
       body: FutureBuilder<Event>(
         future: _dataFuture,
         builder: (context, snapshot) {
@@ -51,8 +97,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           final event = snapshot.data!;
 
           final displayLocation =
-              _markerLocation ??
-                  LatLng(event.latitude, event.longitude);
+              _markerLocation ?? LatLng(event.latitude, event.longitude);
 
           return Column(
             children: [
@@ -67,9 +112,9 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                   children: [
                     TileLayer(
                       urlTemplate:
-                      "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                          "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
                       userAgentPackageName:
-                      'at.ilja_busch.pre.eventful.messless',
+                          'at.ilja_busch.pre.eventful.messless',
                     ),
                     MarkerLayer(
                       key: ValueKey(displayLocation),
@@ -98,9 +143,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: Theme
-                      .of(context)
-                      .scaffoldBackgroundColor,
+                  color: Theme.of(context).scaffoldBackgroundColor,
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.05),
@@ -149,9 +192,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                         onPressed: () {
                           context.pushNamed(
                             "Event Edit",
-                            pathParameters: {
-                              "id": widget.eventId.toString(),
-                            },
+                            pathParameters: {"id": widget.eventId.toString()},
                           );
                         },
                         icon: const Icon(Icons.edit),
@@ -166,6 +207,13 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
         },
       ),
     );
+  }
+
+  static Future<void> deleteEvent(int id) async {
+    final res = await BackendClient.service('events').delete(id);
+    if (res.status != 200 && res.status != 204) {
+      throw StateError("couldn't delete Equipment ${res.body}");
+    }
   }
 }
 
