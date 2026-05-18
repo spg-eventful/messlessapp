@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messless/widgets/msls_appbar.dart';
+import 'package:messless/ws/helper.dart';
 
 import '../../ws/backend_client.dart';
 import '../../ws/schema/company/company.dart';
 import '../company/company_ws.dart';
-import '../warehouse/warehouse_ws.dart';
 
 enum LocationMode { currentLocation, manual }
 
@@ -119,7 +119,7 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
 
                     const SizedBox(height: 16),
 
-                    if (WarehouseWs.isAdmin)
+                    if (HelperWs.isAdmin)
                       DropdownButtonFormField(
                         items: companies.map((Company warehouse) {
                           return DropdownMenuItem<int>(
