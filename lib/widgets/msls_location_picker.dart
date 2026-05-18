@@ -52,7 +52,6 @@ class _MslsLocationPickerState extends State<MslsLocationPicker> {
         widget.latitudeController.text = position.latitude.toString();
         widget.longitudeController.text = position.longitude.toString();
       });
-      // Nur bewegen, wenn wir uns in einem Modus befinden, der die Karte anzeigt
       if (_selectedMode == MslsLocationMode.map ||
           _selectedMode == MslsLocationMode.target) {
         _moveMapToCurrent();
@@ -183,11 +182,8 @@ class _MslsLocationPickerState extends State<MslsLocationPicker> {
   Widget _buildMapView({bool interactive = true}) {
     final latStr = widget.latitudeController.text.replaceAll(',', '.');
     final lngStr = widget.longitudeController.text.replaceAll(',', '.');
-
-    final lat = double.tryParse(latStr) ??
-        widget.targetLocation!.latitude;
-    final lng = double.tryParse(lngStr) ??
-        widget.targetLocation!.longitude;
+    final lat = double.tryParse(latStr) ?? widget.targetLocation!.latitude;
+    final lng = double.tryParse(lngStr) ?? widget.targetLocation!.longitude;
     final point = LatLng(lat, lng);
 
     return SizedBox(

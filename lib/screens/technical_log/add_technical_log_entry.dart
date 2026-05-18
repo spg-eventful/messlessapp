@@ -189,19 +189,27 @@ class _AddTechnicalLogEntryScreenState extends State<AddTechnicalLogEntry> {
                     ),
                     const SizedBox(height: 12),
                     if (_belongsTo != null)
-                      Builder(builder: (context) {
-                        final item = currentList.firstWhere((e) => e.id == _belongsTo);
-                        final isLocked = _selectedType == LoggableType.warehouse ||
-                            _selectedType == LoggableType.equipmentStorage;
+                      Builder(
+                        builder: (context) {
+                          final item = currentList.firstWhere(
+                            (e) => e.id == _belongsTo,
+                          );
+                          final isLocked =
+                              _selectedType == LoggableType.warehouse ||
+                              _selectedType == LoggableType.equipmentStorage;
 
-                        return MslsLocationPicker(
-                          latitudeController: _latitudeController,
-                          longitudeController: _longitudeController,
-                          isLocked: isLocked,
-                          targetLocation: LatLng(item.latitude, item.longitude),
-                          targetLabel: item.label,
-                        );
-                      })
+                          return MslsLocationPicker(
+                            latitudeController: _latitudeController,
+                            longitudeController: _longitudeController,
+                            isLocked: isLocked,
+                            targetLocation: LatLng(
+                              item.latitude,
+                              item.longitude,
+                            ),
+                            targetLabel: item.label,
+                          );
+                        },
+                      )
                     else
                       const Center(
                         child: Text("Bitte zuerst ein Ziel auswählen."),

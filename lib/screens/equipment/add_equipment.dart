@@ -147,12 +147,15 @@ class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
                       Column(
                         children: [
                           Material(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest
+                                .withOpacity(0.3),
                             borderRadius: BorderRadius.circular(8),
                             child: SwitchListTile(
-                              title: const Text('Als Equipment-Lager markieren'),
+                              title: const Text(
+                                'Als Equipment-Lager markieren',
+                              ),
                               subtitle: const Text(
                                 'Kann dieses Equipment selbst andere Gegenstände beinhalten? (z.B. ein Case oder Rack)',
                               ),

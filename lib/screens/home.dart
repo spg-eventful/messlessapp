@@ -18,15 +18,13 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Expanded(
-                child: _buildHistorySection(context),
-              ),
+              Expanded(child: _buildHistorySection(context)),
               const SizedBox(height: 12),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12.0),
                 child: Column(
                   children: [
-                    _buildBigButton(
+                    _buildBigThomasButton(
                       context,
                       label: "Warehouses",
                       icon: Icons.warehouse_rounded,
@@ -35,15 +33,16 @@ class HomeScreen extends StatelessWidget {
                           context.push(RouterDestinations.warehouses.url),
                     ),
                     const SizedBox(height: 16),
-                    _buildBigButton(
+                    _buildBigThomasButton(
                       context,
                       label: "Events",
                       icon: Icons.festival_rounded,
                       color: const Color(0xFF96d1fb),
-                      onPressed: () => context.push(RouterDestinations.events.url),
+                      onPressed: () =>
+                          context.push(RouterDestinations.events.url),
                     ),
                     const SizedBox(height: 16),
-                    _buildBigButton(
+                    _buildBigThomasButton(
                       context,
                       label: "Equipment",
                       icon: Icons.inventory_2_rounded,
@@ -117,7 +116,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBigButton(
+  Widget _buildBigThomasButton(
     BuildContext context, {
     required String label,
     required IconData icon,
