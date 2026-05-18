@@ -6,16 +6,16 @@ import 'package:messless/ws/helper.dart';
 
 import 'warehouse_ws.dart';
 
-class WarehouseFormScreen extends StatefulWidget {
+class CreateWarehouseScreen extends StatefulWidget {
   final int? warehouseId;
 
-  const WarehouseFormScreen({super.key, this.warehouseId});
+  const CreateWarehouseScreen({super.key, this.warehouseId});
 
   @override
-  State<WarehouseFormScreen> createState() => _WarehouseFormScreenState();
+  State<CreateWarehouseScreen> createState() => _CreateWarehouseScreenState();
 }
 
-class _WarehouseFormScreenState extends State<WarehouseFormScreen> {
+class _CreateWarehouseScreenState extends State<CreateWarehouseScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final _nameController = TextEditingController();
