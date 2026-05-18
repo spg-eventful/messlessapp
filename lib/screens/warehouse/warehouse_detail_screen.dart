@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:messless/widgets/msls_location_picker.dart';
+import 'package:messless/ws/helper.dart';
+import 'package:messless/ws/schema/warehouse/warehouse.dart';
 
 import 'warehouse_ws.dart';
 
@@ -33,15 +36,18 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
 
   Future<void> _save(int id) async {
     final name = _nameController.text.trim();
-    final lat = double.parse(_latController.text);
-    final lng = double.parse(_lngController.text);
+    final latText = _latController.text.replaceAll(',', '.');
+    final lngText = _lngController.text.replaceAll(',', '.');
+
+    final lat = double.parse(latText);
+    final lng = double.parse(lngText);
 
     await WarehouseWs.update(
       id: id,
       name: name,
       latitude: lat,
       longitude: lng,
-      companyId: WarehouseWs.activeCompanyId,
+      companyId: HelperWs.activeCompanyId,
     );
 
     setState(() => _isEditing = false);
@@ -51,9 +57,9 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Warehouse Details'),
+        title: const Text('warehouse Details'),
         actions: [
-          if (WarehouseWs.isManagerOrHigher)
+          if (HelperWs.isManagerOrHigher)
             IconButton(
               icon: const Icon(Icons.delete, color: Colors.red),
               onPressed: () async {
@@ -68,23 +74,20 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
             ),
         ],
       ),
-      body: FutureBuilder<Map<String, dynamic>>(
+      body: FutureBuilder<Warehouse>(
         future: WarehouseWs.getById(widget.warehouseId),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final w = snapshot.data!;
-          final id = WarehouseWs.idOf(w);
-          final name = WarehouseWs.titleOf(w);
-          final latRaw = w['latitude'];
-          final lngRaw = w['longitude'];
+          final warehouse = snapshot.data!;
+          final id = warehouse.id;
+          final name = warehouse.label;
+          final lat = warehouse.latitude;
+          final lng = warehouse.longitude;
 
-          final lat = (latRaw is num) ? latRaw.toDouble() : null;
-          final lng = (lngRaw is num) ? lngRaw.toDouble() : null;
-
-          final hasCoordinates = lat != null && lng != null;
+          const hasCoordinates = true;
 
           if (!_isEditing) {
             _nameController.text = name;
@@ -107,7 +110,7 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "Warehouse #$id",
+                        "warehouse #$id",
                         style: const TextStyle(color: Colors.grey),
                       ),
                     ],
@@ -120,20 +123,20 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                     child: FlutterMap(
                       mapController: mapController,
                       options: MapOptions(
-                        initialCenter: LatLng(lat!, lng!),
+                        initialCenter: LatLng(lat, lng),
                         initialZoom: 13,
                       ),
                       children: [
                         TileLayer(
                           urlTemplate:
-                              "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                          "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
                           userAgentPackageName:
-                              'at.ilja_busch.pre.eventful.messless',
+                          'at.ilja_busch.pre.eventful.messless',
                         ),
                         MarkerLayer(
                           markers: [
                             Marker(
-                              point: LatLng(lat!, lng!),
+                              point: LatLng(lat, lng),
                               width: 48,
                               height: 48,
                               alignment: Alignment.topCenter,
@@ -147,15 +150,10 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                         ),
                       ],
                     ),
-                  )
-                else
-                  const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Text("Kein Standort verfügbar"),
                   ),
 
                 const SizedBox(height: 16),
-                if (WarehouseWs.isManagerOrHigher)
+                if (HelperWs.isManagerOrHigher)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: SizedBox(
@@ -176,19 +174,15 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                       children: [
                         TextField(
                           controller: _nameController,
-                          decoration: const InputDecoration(labelText: "Name"),
-                        ),
-                        TextField(
-                          controller: _latController,
                           decoration: const InputDecoration(
-                            labelText: "Latitude",
+                            labelText: "Name",
+                            border: OutlineInputBorder(),
                           ),
                         ),
-                        TextField(
-                          controller: _lngController,
-                          decoration: const InputDecoration(
-                            labelText: "Longitude",
-                          ),
+                        const SizedBox(height: 16),
+                        MslsLocationPicker(
+                            latitudeController: _latController,
+                            longitudeController: _lngController
                         ),
                         const SizedBox(height: 12),
                         SizedBox(
