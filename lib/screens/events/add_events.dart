@@ -7,7 +7,8 @@ import 'package:messless/widgets/msls_appbar.dart';
 
 import '../../ws/backend_client.dart';
 import '../../ws/schema/company/company.dart';
-import '../warehouses/warehouse_ws.dart';
+import '../company/company_ws.dart';
+import '../warehouse/warehouse_ws.dart';
 
 enum LocationMode { currentLocation, manual }
 
@@ -33,7 +34,7 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
   @override
   void initState() {
     super.initState();
-    _companies = WarehouseWs.findCompanies();
+    _companies = CompanyWs.find();
   }
 
   @override
