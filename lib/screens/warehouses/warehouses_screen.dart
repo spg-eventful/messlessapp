@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../ws/schema/warehouse/warehouse.dart';
 import '../../ws/schema/company/company.dart';
 import 'warehouse_ws.dart';
 
@@ -13,7 +14,7 @@ class WarehousesScreen extends StatefulWidget {
 
 class _WarehousesScreenState extends State<WarehousesScreen> {
   int? _selectedCompanyId;
-  late Future<List<Map<String, dynamic>>> _warehousesFuture;
+  late Future<List<Warehouse>> _warehousesFuture;
 
   bool get _isAdminSelectingCompany =>
       WarehouseWs.isAdmin && _selectedCompanyId == null;
@@ -88,16 +89,27 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
             final id = c.id;
             final name = c.label ?? 'Company #$id';
 
-            return ListTile(
-              title: Text(name),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                setState(() {
-                  _selectedCompanyId = id;
-                  WarehouseWs.setActiveCompanyId(id);
-                  _warehousesFuture = WarehouseWs.findAll();
-                });
-              },
+            return Card(
+              clipBehavior: Clip.hardEdge,
+              child: InkWell(
+                onTap: () {
+                  setState(() {
+                    _selectedCompanyId = id;
+                    WarehouseWs.setActiveCompanyId(id);
+                    _warehousesFuture = WarehouseWs.findAll();
+                  });
+                },
+                child: ListTile(
+                  title: Text(
+                    name,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    "Position: ${c.latitude.toStringAsFixed(2)}, ${c.longitude.toStringAsFixed(2)}",
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                ),
+              ),
             );
           },
         );
@@ -106,7 +118,7 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
   }
 
   Widget _buildWarehouses() {
-    return FutureBuilder<List<Map<String, dynamic>>>(
+    return FutureBuilder<List<Warehouse>>(
       future: _warehousesFuture,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
@@ -117,7 +129,7 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
         final companyId = WarehouseWs.activeCompanyId;
 
         final warehouses = all.where((w) {
-          return WarehouseWs.companyIdOf(w) == companyId;
+          return w.company == companyId;
         }).toList();
 
         if (warehouses.isEmpty) {
@@ -130,18 +142,27 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
           itemBuilder: (context, index) {
             final w = warehouses[index];
 
-            return ListTile(
-              title: Text(WarehouseWs.titleOf(w)),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () async {
-                final result = await context.push(
-                  '/warehouses/${WarehouseWs.idOf(w)}',
-                );
+            return Card(
+              clipBehavior: Clip.hardEdge,
+              child: InkWell(
+                onTap: () async {
+                  final result = await context.push('/warehouses/${w.id}');
 
-                if (result == true) {
-                  _reloadWarehouses();
-                }
-              },
+                  if (result == true) {
+                    _reloadWarehouses();
+                  }
+                },
+                child: ListTile(
+                  title: Text(
+                    w.label,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    "Position: ${w.latitude.toStringAsFixed(2)}, ${w.longitude.toStringAsFixed(2)}",
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                ),
+              ),
             );
           },
         );

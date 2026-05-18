@@ -55,7 +55,7 @@ class EquipmentDetailsData {
     }
   }
 
-  static Future<EquipmentDetailsData> loadData(int equipmentId) async {
+  static Future<EquipmentDetailsData> getEquipment(int equipmentId) async {
     final equipment = await EquipmentDetailsData.fetchEquipment(equipmentId);
     final results = await Future.wait([
       fetchWarehouses(equipment.belongsToWarehouse),

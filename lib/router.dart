@@ -107,12 +107,12 @@ final goRouter = GoRouter(
           routes: [
             GoRoute(
               path: 'new',
-              name: "Warehouse Create",
+              name: "warehouse Create",
               builder: (context, state) => const WarehouseFormScreen(),
             ),
             GoRoute(
               path: ':id',
-              name: "Warehouse Detail",
+              name: "warehouse Detail",
               builder: (context, state) {
                 final id = int.parse(state.pathParameters['id']!);
                 return WarehouseDetailScreen(warehouseId: id);
@@ -120,7 +120,7 @@ final goRouter = GoRouter(
               routes: [
                 GoRoute(
                   path: 'edit',
-                  name: "Warehouse Edit",
+                  name: "warehouse Edit",
                   builder: (context, state) {
                     final id = int.parse(state.pathParameters['id']!);
                     return WarehouseFormScreen(warehouseId: id);

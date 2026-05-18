@@ -1,16 +1,15 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:messless/screens/events/utils/fetch_event_details.dart';
 import 'package:messless/widgets/msls_appbar.dart';
 
+import '../../widgets/msls_location_picker.dart';
 import '../../ws/backend_client.dart';
 import '../../ws/schema/company/company.dart';
 import '../warehouses/warehouse_ws.dart';
-
-enum LocationMode { currentLocation, manual }
 
 class AddEventsScreen extends StatefulWidget {
   final int? eventId;
@@ -27,11 +26,10 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
   final TextEditingController _latitudeController = TextEditingController();
   final TextEditingController _longitudeController = TextEditingController();
   final TextEditingController _companyIdController = TextEditingController();
-  bool _isLocationLoading = false;
 
   late Future<List<Company>> _companies;
 
-  LocationMode _selectedMode = LocationMode.currentLocation;
+  LatLng? _initialTarget;
 
   @override
   void initState() {
@@ -50,7 +48,7 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
           _labelController.text = fetchedEvent.label;
           _latitudeController.text = fetchedEvent.latitude.toString();
           _longitudeController.text = fetchedEvent.longitude.toString();
-          _selectedMode = LocationMode.manual;
+          _initialTarget = LatLng(fetchedEvent.latitude, fetchedEvent.longitude);
         });
       }
     } catch (e) {
@@ -119,34 +117,16 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
                     ),
 
                     const SizedBox(height: 16),
-
-                    SegmentedButton<LocationMode>(
-                      segments: [
-                        const ButtonSegment(
-                          value: LocationMode.currentLocation,
-                          label: Text("Aktuell"),
-                          icon: Icon(Icons.my_location),
-                        ),
-                        const ButtonSegment(
-                          value: LocationMode.manual,
-                          label: Text("Manuell"),
-                          icon: Icon(Icons.edit_location_alt),
-                        ),
-                      ],
-                      selected: {_selectedMode},
-                      onSelectionChanged: (Set<LocationMode> val) {
-                        setState(() {
-                          _selectedMode = val.first;
-                          if (_selectedMode == LocationMode.currentLocation) {
-                            fetchAndSetLocation();
-                          }
-                        });
-                      },
+                    const Text(
+                      "Standort",
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-
-                    const SizedBox(height: 16),
-                    _buildLocationInput(),
-
+                    const SizedBox(height: 12),
+                    MslsLocationPicker(
+                      latitudeController: _latitudeController,
+                      longitudeController: _longitudeController,
+                      targetLocation: _initialTarget,
+                    ),
                     const SizedBox(height: 16),
 
                     if (WarehouseWs.isAdmin)
@@ -203,10 +183,13 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     try {
+      final latText = _latitudeController.text.replaceAll(',', '.');
+      final lngText = _longitudeController.text.replaceAll(',', '.');
+
       final body = {
         "label": _labelController.text,
-        "latitude": double.tryParse(_latitudeController.text),
-        "longitude": double.tryParse(_longitudeController.text),
+        "latitude": double.tryParse(latText),
+        "longitude": double.tryParse(lngText),
         "companyId": int.tryParse(_companyIdController.text),
       };
 
@@ -239,79 +222,5 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
         );
       }
     }
-  }
-
-  Future<void> fetchAndSetLocation() async {
-    setState(() => _isLocationLoading = true);
-    try {
-      final position = await Geolocator.getCurrentPosition();
-      _latitudeController.text = position.latitude.toString();
-      _longitudeController.text = position.longitude.toString();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.toString())));
-      }
-    } finally {
-      if (mounted) setState(() => _isLocationLoading = false);
-    }
-  }
-
-  Widget _buildLocationInput() {
-    if (_selectedMode == LocationMode.currentLocation) {
-      return Column(
-        children: [
-          OutlinedButton.icon(
-            onPressed: _isLocationLoading ? null : fetchAndSetLocation,
-            icon: _isLocationLoading
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.location_searching),
-            label: Text(_isLocationLoading ? "Suche..." : "Standort abrufen"),
-          ),
-          if (_latitudeController.text.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: Text(
-                "Lat: ${_latitudeController.text}, Lng: ${_longitudeController.text}",
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ),
-        ],
-      );
-    }
-    return Row(
-      children: [
-        Expanded(
-          child: TextFormField(
-            controller: _latitudeController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              labelText: 'Lat',
-              border: OutlineInputBorder(),
-            ),
-            validator: (value) =>
-                value == null || value.isEmpty ? 'Pflichtfeld' : null,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: TextFormField(
-            controller: _longitudeController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              labelText: 'Lng',
-              border: OutlineInputBorder(),
-            ),
-            validator: (value) =>
-                value == null || value.isEmpty ? 'Pflichtfeld' : null,
-          ),
-        ),
-      ],
-    );
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:messless/screens/events/utils/fetch_event_details.dart';
+import 'package:messless/services/history_service.dart';
 import 'package:messless/widgets/msls_appbar.dart';
 
 import '../../ws/schema/event/event.dart';
@@ -24,7 +25,10 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    _dataFuture = FetchEventDetails.fetchEvent(widget.eventId);
+    _dataFuture = FetchEventDetails.fetchEvent(widget.eventId).then((event) {
+      HistoryService().addToHistory(event);
+      return event;
+    });
   }
 
   @override

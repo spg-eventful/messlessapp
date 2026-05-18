@@ -28,7 +28,7 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    _dataFuture = EquipmentDetailsData.loadData(widget.equipmentId);
+    _dataFuture = EquipmentDetailsData.getEquipment(widget.equipmentId);
   }
 
   @override
@@ -162,7 +162,7 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                         ),
                         const SizedBox(width: 12),
                         _CompactInfo(
-                          label: 'Warehouse',
+                          label: 'warehouse',
                           value: warehouse.label,
                         ),
                         const SizedBox(width: 12),

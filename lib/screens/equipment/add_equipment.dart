@@ -38,9 +38,9 @@ class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
       );
       if (mounted) {
         setState(() {
-          _labelController.text = equipment.label;
-          _belongsTo = equipment.belongsToWarehouse;
-          isEquipmentStorage = equipment.storage == null ? false : true;
+          _labelController.text = equipment.equipment.label;
+          _belongsTo = equipment.equipment.belongsToWarehouse;
+          isEquipmentStorage = equipment.equipment.storage == null ? false : true;
         });
       }
     } catch (e) {

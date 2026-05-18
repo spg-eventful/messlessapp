@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:messless/ws/backend_client.dart';
+import 'package:messless/ws/schema/warehouse/warehouse.dart';
 
 import '../../ws/schema/company/company.dart';
 
@@ -12,16 +13,17 @@ class WarehouseWs {
   static int get currentCompanyId => _currentCompanyId();
   static int? _activeCompanyId;
 
-  static Future<List<Map<String, dynamic>>> findAll() async {
-    final res = await BackendClient.service('warehouses').find();
-    _ensureStatus(res.status, {200});
-    return _asList(res.body);
+  static Future<List<Warehouse>> findAll() async {
+    final response = await BackendClient.service('warehouses').find();
+    _ensureStatus(response.status, {200});
+    List<dynamic> jsonList = jsonDecode(response.body.toString());
+    return jsonList.map((json) => Warehouse.fromJson(json)).toList();
   }
 
-  static Future<Map<String, dynamic>> getById(int id) async {
+  static Future<Warehouse> getById(int id) async {
     final res = await BackendClient.service('warehouses').get(id);
     _ensureStatus(res.status, {200});
-    return _asMap(res.body);
+    return Warehouse.fromJson(jsonDecode(res.body.toString()));
   }
 
   static Future<void> create({
@@ -80,16 +82,6 @@ class WarehouseWs {
     return decoded.map((e) => Company.fromJson(e)).toList();
   }
 
-  static String titleOf(Map<String, dynamic> json) {
-    final value = json['label'];
-
-    if (value is String && value.trim().isNotEmpty) {
-      return value.trim();
-    }
-
-    return 'Warehouse #${idOf(json)}';
-  }
-
   static void setActiveCompanyId(int id) {
     _activeCompanyId = id;
   }
@@ -106,21 +98,6 @@ class WarehouseWs {
       return _activeCompanyId!;
     }
     return currentCompanyId;
-  }
-
-  static int idOf(Map<String, dynamic> json) {
-    final value = json['id'];
-    if (value is int) return value;
-    if (value is num) return value.toInt();
-    throw const FormatException('Warehouse id missing or invalid.');
-  }
-
-  static int? companyIdOf(Map<String, dynamic> json) {
-    final company = json['company'];
-
-    if (company is int) return company;
-
-    return null;
   }
 
   static int _currentCompanyId() {
@@ -174,15 +151,6 @@ class WarehouseWs {
     if (status == null || !ok.contains(status)) {
       throw StateError('Unexpected warehouse response status: $status');
     }
-  }
-
-  static List<Map<String, dynamic>> _asList(String? body) {
-    final decoded = jsonDecode(body ?? '[]');
-    if (decoded is! List) {
-      throw const FormatException('Expected a JSON list.');
-    }
-
-    return decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 
   static Map<String, dynamic> _asMap(String? body) {
