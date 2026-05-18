@@ -83,6 +83,9 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
 
         final companies = snapshot.data!;
 
+        companies.sort((a, b) =>
+            a.label.toLowerCase().compareTo(b.label.toLowerCase()));
+
         return ListView.separated(
           padding: const EdgeInsets.all(8),
           itemCount: companies.length,
