@@ -10,7 +10,7 @@ import '../../services/user_role.dart';
 import '../../widgets/msls_location_picker.dart';
 import '../../ws/backend_client.dart';
 import '../../ws/schema/company/company.dart';
-import '../warehouses/warehouse_ws.dart';
+import '../company/company_ws.dart';
 
 class AddEventsScreen extends StatefulWidget {
   final int? eventId;
@@ -35,7 +35,7 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
   @override
   void initState() {
     super.initState();
-    _companies = WarehouseWs.findCompanies();
+    _companies = CompanyWs.find();
     if (widget.eventId != null) {
       _loadEventData();
     }

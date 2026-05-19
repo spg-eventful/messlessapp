@@ -42,7 +42,10 @@ enum RouterDestinations {
   detailsCompany(url: '/:id'),
   users(url: '/users'),
   addUser(url: '/add'),
-  detailsUser(url: '/:id');
+  detailsUser(url: '/:id'),
+  addEvent(url: '/add'),
+  detailsEvent(url: '/:id'),
+  editEvent(url: '/edit');
 
   final String url;
 
@@ -80,25 +83,6 @@ final goRouter = GoRouter(
               builder: (context, state) => WebSocketTestingScreen(),
             ),
           ],
-        ),
-        GoRoute(
-          path: RouterDestinations.events.withoutLeadingSlash(),
-          name: "Events",
-          builder: (context, state) => const EventsScreen(),
-        ),
-        GoRoute(
-          path: RouterDestinations.addEvents.withoutLeadingSlash(),
-          name: "Events hinzufügen",
-          builder: (context, state) => const AddEventsScreen(),
-        ),
-        GoRoute(
-          path: RouterDestinations.eventDetails.withoutLeadingSlash(),
-          name: "Event Details",
-          builder: (context, state) {
-            final String idString = state.pathParameters['id']!;
-            final int id = int.parse(idString);
-            return EventDetailsScreen(eventId: id);
-          },
         ),
 
         GoRoute(
@@ -140,30 +124,29 @@ final goRouter = GoRouter(
               ),
             ]
         ),
+        GoRoute(
+          path: RouterDestinations.events.withoutLeadingSlash(),
+          name: "Events",
           builder: (context, state) => const EventsScreen(),
           routes: [
             GoRoute(
-              path: 'add',
+              path: RouterDestinations.addEvent.withoutLeadingSlash(),
               name: "Event hinzufügen",
               builder: (context, state) => const AddEventsScreen(),
             ),
             GoRoute(
-              path: ':id',
+              path: RouterDestinations.detailsEvent.withoutLeadingSlash(),
               name: "Event Details",
-              builder: (context, state) {
-                final String idString = state.pathParameters['id']!;
-                final int id = int.parse(idString);
-                return EventDetailsScreen(eventId: id);
-              },
+              builder: (context, state) =>
+                  EventDetailsScreen(
+                      eventId: int.parse(state.pathParameters['id']!)),
               routes: [
                 GoRoute(
-                  path: 'edit',
+                  path: RouterDestinations.editEvent.withoutLeadingSlash(),
                   name: "Event Edit",
-                  builder: (context, state) {
-                    final String idString = state.pathParameters['id']!;
-                    final int id = int.parse(idString);
-                    return AddEventsScreen(eventId: id);
-                  },
+                  builder: (context, state) =>
+                      AddEventsScreen(
+                          eventId: int.parse(state.pathParameters['id']!)),
                 ),
               ],
             ),
