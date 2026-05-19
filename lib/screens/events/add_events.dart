@@ -1,19 +1,21 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:messless/screens/events/utils/fetch_event_details.dart';
 import 'package:messless/widgets/msls_appbar.dart';
-import 'package:messless/ws/helper.dart';
 
+import '../../services/user_role.dart';
+import '../../widgets/msls_location_picker.dart';
 import '../../ws/backend_client.dart';
 import '../../ws/schema/company/company.dart';
-import '../company/company_ws.dart';
-
-enum LocationMode { currentLocation, manual }
+import '../warehouses/warehouse_ws.dart';
 
 class AddEventsScreen extends StatefulWidget {
-  const AddEventsScreen({super.key});
+  final int? eventId;
+
+  const AddEventsScreen({super.key, this.eventId});
 
   @override
   State<AddEventsScreen> createState() => _AddEventsScreenState();
@@ -25,26 +27,56 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
   final TextEditingController _latitudeController = TextEditingController();
   final TextEditingController _longitudeController = TextEditingController();
   final TextEditingController _companyIdController = TextEditingController();
-  bool _isLocationLoading = false;
 
   late Future<List<Company>> _companies;
 
-  LocationMode _selectedMode = LocationMode.currentLocation;
+  LatLng? _initialTarget;
 
   @override
   void initState() {
     super.initState();
-    _companies = CompanyWs.find();
+    _companies = WarehouseWs.findCompanies();
+    if (widget.eventId != null) {
+      _loadEventData();
+    }
+  }
+
+  Future<void> _loadEventData() async {
+    try {
+      final fetchedEvent = await FetchEventDetails.fetchEvent(widget.eventId!);
+      if (mounted) {
+        setState(() {
+          _labelController.text = fetchedEvent.label;
+          _latitudeController.text = fetchedEvent.latitude.toString();
+          _longitudeController.text = fetchedEvent.longitude.toString();
+          _initialTarget = LatLng(
+            fetchedEvent.latitude,
+            fetchedEvent.longitude,
+          );
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Fehler beim Laden des Events: $e')),
+        );
+      }
+    }
   }
 
   @override
   void dispose() {
     _labelController.dispose();
+    _latitudeController.dispose();
+    _longitudeController.dispose();
+    _companyIdController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final bool isEditMode = widget.eventId != null;
+
     return Scaffold(
       appBar: const MslsAppbar(),
       body: SingleChildScrollView(
@@ -75,56 +107,38 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
                     TextFormField(
                       controller: _labelController,
                       decoration: const InputDecoration(
-                        labelText: "Bezeichnung / Label",
-                        hintText: 'z.B. Mischpult Yamaha QL5',
+                        labelText: "Bezeichnung / Name",
+                        hintText: 'z. B. Spenger Rave',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.label_outline),
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Bitte geben Sie ein Label ein!';
+                          return 'Bitte geben Sie einen Namen ein!';
                         }
                         return null;
                       },
                     ),
 
-                    const SizedBox(height: 32),
-
-                    SegmentedButton<LocationMode>(
-                      segments: [
-                        const ButtonSegment(
-                          value: LocationMode.currentLocation,
-                          label: Text("Aktuell"),
-                          icon: Icon(Icons.my_location),
-                        ),
-                        const ButtonSegment(
-                          value: LocationMode.manual,
-                          label: Text("Manuell"),
-                          icon: Icon(Icons.edit_location_alt),
-                        ),
-                      ],
-                      selected: {_selectedMode},
-                      onSelectionChanged: (Set<LocationMode> val) {
-                        setState(() {
-                          _selectedMode = val.first;
-                          if (_selectedMode == LocationMode.currentLocation) {
-                            fetchAndSetLocation();
-                          }
-                        });
-                      },
+                    const SizedBox(height: 16),
+                    const Text(
+                      "Standort",
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-
+                    const SizedBox(height: 12),
+                    MslsLocationPicker(
+                      latitudeController: _latitudeController,
+                      longitudeController: _longitudeController,
+                    ),
                     const SizedBox(height: 16),
-                    _buildLocationInput(),
 
-                    const SizedBox(height: 16),
-
-                    if (HelperWs.isAdmin)
-                      DropdownButtonFormField(
-                        items: companies.map((Company warehouse) {
+                    if (UserRole.isAdmin)
+                      DropdownButtonFormField<int>(
+                        initialValue: int.tryParse(_companyIdController.text),
+                        items: companies.map((Company company) {
                           return DropdownMenuItem<int>(
-                            value: warehouse.id,
-                            child: Text(warehouse.label),
+                            value: company.id,
+                            child: Text(company.label),
                           );
                         }).toList(),
                         onChanged: (int? newId) {
@@ -139,12 +153,12 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
                         ),
                         validator: (value) {
                           if (value == null) {
-                            return 'Bitte wählen Sie ein Lager aus!';
+                            return 'Bitte wählen Sie eine Company aus!';
                           }
                           return null;
                         },
                       ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 32),
 
                     FilledButton.icon(
                       onPressed: (_formKey.currentState?.validate() ?? false)
@@ -153,8 +167,10 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.all(16.0),
                       ),
-                      icon: const Icon(Icons.save),
-                      label: const Text("Equipment Speichern"),
+                      icon: Icon(isEditMode ? Icons.update : Icons.save),
+                      label: Text(
+                        isEditMode ? "Event Aktualisieren" : "Event Speichern",
+                      ),
                     ),
                   ],
                 ),
@@ -170,17 +186,32 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     try {
-      await BackendClient.service("events").create(
-        jsonEncode({
-          "label": _labelController.text,
-          "latitude": double.tryParse(_latitudeController.text),
-          "longitude": double.tryParse(_longitudeController.text),
-          "companyId": int.tryParse(_companyIdController.text),
-        }),
-      );
+      final latText = _latitudeController.text.replaceAll(',', '.');
+      final lngText = _longitudeController.text.replaceAll(',', '.');
+
+      final body = {
+        "label": _labelController.text,
+        "latitude": double.tryParse(latText),
+        "longitude": double.tryParse(lngText),
+        "companyId": int.tryParse(_companyIdController.text),
+      };
+
+      if (widget.eventId == null) {
+        await BackendClient.service("events").create(jsonEncode(body));
+      } else {
+        body["\$id"] = widget.eventId;
+        await BackendClient.service("events").update(jsonEncode(body));
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Event erfolgreich erstellt')),
+          SnackBar(
+            content: Text(
+              widget.eventId == null
+                  ? 'Event erfolgreich erstellt'
+                  : 'Event erfolgreich aktualisiert',
+            ),
+          ),
         );
         context.go("/events");
       }
@@ -194,70 +225,5 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
         );
       }
     }
-  }
-
-  Future<void> fetchAndSetLocation() async {
-    setState(() => _isLocationLoading = true);
-    try {
-      final position = await Geolocator.getCurrentPosition();
-      _latitudeController.text = position.latitude.toString();
-      _longitudeController.text = position.longitude.toString();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.toString())));
-      }
-    } finally {
-      if (mounted) setState(() => _isLocationLoading = false);
-    }
-  }
-
-  Widget _buildLocationInput() {
-    if (_selectedMode == LocationMode.currentLocation) {
-      return Column(
-        children: [
-          OutlinedButton.icon(
-            onPressed: _isLocationLoading ? null : fetchAndSetLocation,
-            icon: _isLocationLoading
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.location_searching),
-            label: Text(_isLocationLoading ? "Suche..." : "Standort abrufen"),
-          ),
-          if (_latitudeController.text.isNotEmpty)
-            Text(
-              "Lat: ${_latitudeController.text}, Lng: ${_longitudeController.text}",
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-        ],
-      );
-    }
-    return Row(
-      children: [
-        Expanded(
-          child: TextFormField(
-            controller: _latitudeController,
-            decoration: const InputDecoration(
-              labelText: 'Lat',
-              border: OutlineInputBorder(),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: TextFormField(
-            controller: _longitudeController,
-            decoration: const InputDecoration(
-              labelText: 'Lng',
-              border: OutlineInputBorder(),
-            ),
-          ),
-        ),
-      ],
-    );
   }
 }

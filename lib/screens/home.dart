@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messless/router.dart';
 import 'package:messless/widgets/msls_appbar.dart';
-import 'package:messless/ws/helper.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -12,7 +11,7 @@ class HomeScreen extends StatelessWidget {
     final isAdmin = HelperWs.isAdmin;
     final isManagerOrHigher = HelperWs.isManagerOrHigher;
     return Scaffold(
-      appBar: MslsAppbar(),
+      appBar: const MslsAppbar(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -74,7 +73,6 @@ class HomeScreen extends StatelessWidget {
            onPressed: () => context.push(RouterDestinations.events.url),
          ),
 
-         //TODO: this button is just for testing, remove it later
          const SizedBox(height: 16),
          _buildBigButton(
            context,
@@ -87,7 +85,63 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDashboardCard(BuildContext context, {
+  Widget _buildHistorySection(BuildContext context) {
+    return FutureBuilder<List<Event>>(
+      future: HistoryService().getHistory(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text("No recently accessed events"));
+        }
+
+        final recentEvents = snapshot.data!;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+              child: Text(
+                "Recently Accessed",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.all(4),
+                itemCount: recentEvents.length,
+                separatorBuilder: (context, index) => const SizedBox(height: 2),
+                itemBuilder: (context, index) {
+                  final item = recentEvents[index];
+                  return Card(
+                    clipBehavior: Clip.hardEdge,
+                    child: InkWell(
+                      onTap: () => context.pushNamed(
+                        "Event Details",
+                        pathParameters: {"id": item.id.toString()},
+                      ),
+                      child: ListTile(
+                        title: Text(
+                          item.label,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          "Position: ${item.latitude.toStringAsFixed(2)}, ${item.longitude.toStringAsFixed(2)}",
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildBigThomasButton(
+    BuildContext context, {
     required String label,
     required IconData icon,
     required Color color,

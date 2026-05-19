@@ -140,6 +140,36 @@ final goRouter = GoRouter(
               ),
             ]
         ),
+          builder: (context, state) => const EventsScreen(),
+          routes: [
+            GoRoute(
+              path: 'add',
+              name: "Event hinzufügen",
+              builder: (context, state) => const AddEventsScreen(),
+            ),
+            GoRoute(
+              path: ':id',
+              name: "Event Details",
+              builder: (context, state) {
+                final String idString = state.pathParameters['id']!;
+                final int id = int.parse(idString);
+                return EventDetailsScreen(eventId: id);
+              },
+              routes: [
+                GoRoute(
+                  path: 'edit',
+                  name: "Event Edit",
+                  builder: (context, state) {
+                    final String idString = state.pathParameters['id']!;
+                    final int id = int.parse(idString);
+                    return AddEventsScreen(eventId: id);
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+
         GoRoute(
           path: RouterDestinations.warehouses.withoutLeadingSlash(),
           name: "Warehouses",
@@ -172,20 +202,33 @@ final goRouter = GoRouter(
           path: RouterDestinations.equipment.withoutLeadingSlash(),
           name: "Equipment",
           builder: (context, state) => const EquipmentScreen(),
-        ),
-        GoRoute(
-          path: RouterDestinations.addEquipment.withoutLeadingSlash(),
-          name: "Add Equipment",
-          builder: (context, state) => const AddEquipmentScreen(),
-        ),
-        GoRoute(
-          path: RouterDestinations.equipmentDetails.withoutLeadingSlash(),
-          name: "Equipment Details",
-          builder: (context, state) {
-            final String idString = state.pathParameters['id']!;
-            final int id = int.parse(idString);
-            return EquipmentDetailsScreen(equipmentId: id);
-          },
+          routes: [
+            GoRoute(
+              path: 'add',
+              name: "Equipment hinzufügen",
+              builder: (context, state) => const AddEquipmentScreen(),
+            ),
+            GoRoute(
+              path: ':id',
+              name: "Equipment Details",
+              builder: (context, state) {
+                final String idString = state.pathParameters['id']!;
+                final int id = int.parse(idString);
+                return EquipmentDetailsScreen(equipmentId: id);
+              },
+              routes: [
+                GoRoute(
+                  path: 'edit',
+                  name: "Equipment Edit",
+                  builder: (context, state) {
+                    final String idString = state.pathParameters['id']!;
+                    final int id = int.parse(idString);
+                    return AddEquipmentScreen(equipmentId: id);
+                  },
+                ),
+              ],
+            ),
+          ],
         ),
         GoRoute(
           path: RouterDestinations.qrScanner.withoutLeadingSlash(),

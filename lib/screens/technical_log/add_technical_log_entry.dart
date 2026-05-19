@@ -1,16 +1,15 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:messless/widgets/msls_location_picker.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:messless/widgets/msls_appbar.dart';
 import 'package:messless/ws/schema/equipment_storage/equipment_storage.dart';
 import 'package:messless/ws/schema/event/event.dart';
 import 'package:messless/ws/schema/warehouse/warehouse.dart';
 
 import '../../../ws/backend_client.dart';
-
-enum LocationMode { warehouse, currentLocation, manual }
 
 enum LoggableType { warehouse, event, equipmentStorage }
 
@@ -30,15 +29,12 @@ class _AddTechnicalLogEntryScreenState extends State<AddTechnicalLogEntry> {
   final TextEditingController _longitudeController = TextEditingController();
 
   LoggableType _selectedType = LoggableType.warehouse;
-  LocationMode _selectedMode = LocationMode.currentLocation;
   bool isCheckIn = true;
 
   int? _belongsTo;
   bool isFormValid = false;
 
   late Future<Map<LoggableType, List<dynamic>>> _dataFuture;
-
-  bool _isLocationLoading = false;
 
   @override
   void initState() {
@@ -154,7 +150,7 @@ class _AddTechnicalLogEntryScreenState extends State<AddTechnicalLogEntry> {
                     DropdownButtonFormField<int>(
                       key: ValueKey(_selectedType),
                       // Wichtig für Reset bei Typ-Wechsel
-                      value: _belongsTo,
+                      initialValue: _belongsTo,
                       decoration: InputDecoration(
                         labelText: switch (_selectedType) {
                           LoggableType.warehouse => "Lager auswählen",
@@ -172,8 +168,7 @@ class _AddTechnicalLogEntryScreenState extends State<AddTechnicalLogEntry> {
                       onChanged: (int? newId) {
                         setState(() {
                           _belongsTo = newId;
-                          if (_selectedMode == LocationMode.warehouse &&
-                              newId != null) {
+                          if (newId != null) {
                             final item = currentList.firstWhere(
                               (e) => e.id == newId,
                             );
@@ -192,47 +187,33 @@ class _AddTechnicalLogEntryScreenState extends State<AddTechnicalLogEntry> {
                       "Standort",
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 8),
-                    SegmentedButton<LocationMode>(
-                      segments: [
-                        ButtonSegment(
-                          value: LocationMode.warehouse,
-                          label: const Text("Vom Ziel"),
-                          icon: const Icon(Icons.copy),
-                          enabled: _belongsTo != null,
-                        ),
-                        const ButtonSegment(
-                          value: LocationMode.currentLocation,
-                          label: Text("Aktuell"),
-                          icon: Icon(Icons.my_location),
-                        ),
-                        const ButtonSegment(
-                          value: LocationMode.manual,
-                          label: Text("Manuell"),
-                          icon: Icon(Icons.edit_location_alt),
-                        ),
-                      ],
-                      selected: {_selectedMode},
-                      onSelectionChanged: (Set<LocationMode> val) {
-                        setState(() {
-                          _selectedMode = val.first;
-                          if (_selectedMode == LocationMode.warehouse &&
-                              _belongsTo != null) {
-                            final item = currentList.firstWhere(
-                              (e) => e.id == _belongsTo,
-                            );
-                            _latitudeController.text = item.latitude.toString();
-                            _longitudeController.text = item.longitude
-                                .toString();
-                          } else if (_selectedMode ==
-                              LocationMode.currentLocation) {
-                            fetchAndSetLocation();
-                          }
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildLocationInput(),
+                    const SizedBox(height: 12),
+                    if (_belongsTo != null)
+                      Builder(
+                        builder: (context) {
+                          final item = currentList.firstWhere(
+                            (e) => e.id == _belongsTo,
+                          );
+                          final isLocked =
+                              _selectedType == LoggableType.warehouse ||
+                              _selectedType == LoggableType.equipmentStorage;
+
+                          return MslsLocationPicker(
+                            latitudeController: _latitudeController,
+                            longitudeController: _longitudeController,
+                            isLocked: isLocked,
+                            targetLocation: LatLng(
+                              item.latitude,
+                              item.longitude,
+                            ),
+                            targetLabel: item.label,
+                          );
+                        },
+                      )
+                    else
+                      const Center(
+                        child: Text("Bitte zuerst ein Ziel auswählen."),
+                      ),
 
                     const SizedBox(height: 40),
                     ElevatedButton.icon(
@@ -286,13 +267,16 @@ class _AddTechnicalLogEntryScreenState extends State<AddTechnicalLogEntry> {
   void submitLogEntry() async {
     if (!_formKey.currentState!.validate()) return;
     try {
+      final latText = _latitudeController.text.replaceAll(',', '.');
+      final lngText = _longitudeController.text.replaceAll(',', '.');
+
       await BackendClient.service("technical-log-entries").create(
         jsonEncode({
           "attachedTo": widget.equipmentId,
           "isCheckIn": isCheckIn,
           "loggable": _belongsTo,
-          "latitude": double.tryParse(_latitudeController.text),
-          "longitude": double.tryParse(_longitudeController.text),
+          "latitude": double.tryParse(latText),
+          "longitude": double.tryParse(lngText),
         }),
       );
       if (mounted) context.pop();
@@ -303,83 +287,5 @@ class _AddTechnicalLogEntryScreenState extends State<AddTechnicalLogEntry> {
         ).showSnackBar(const SnackBar(content: Text('Fehler beim Speichern')));
       }
     }
-  }
-
-  Future<void> fetchAndSetLocation() async {
-    setState(() => _isLocationLoading = true);
-    try {
-      final position = await Geolocator.getCurrentPosition();
-      _latitudeController.text = position.latitude.toString();
-      _longitudeController.text = position.longitude.toString();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.toString())));
-      }
-    } finally {
-      if (mounted) setState(() => _isLocationLoading = false);
-    }
-  }
-
-  Widget _buildLocationInput() {
-    if (_selectedMode == LocationMode.warehouse) {
-      return Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.grey.withAlpha(30),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Text(
-          "Koordinaten vom Ziel übernommen.",
-          textAlign: TextAlign.center,
-        ),
-      );
-    }
-    if (_selectedMode == LocationMode.currentLocation) {
-      return Column(
-        children: [
-          OutlinedButton.icon(
-            onPressed: _isLocationLoading ? null : fetchAndSetLocation,
-            icon: _isLocationLoading
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.location_searching),
-            label: Text(_isLocationLoading ? "Suche..." : "Standort abrufen"),
-          ),
-          if (_latitudeController.text.isNotEmpty)
-            Text(
-              "Lat: ${_latitudeController.text}, Lng: ${_longitudeController.text}",
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-        ],
-      );
-    }
-    return Row(
-      children: [
-        Expanded(
-          child: TextFormField(
-            controller: _latitudeController,
-            decoration: const InputDecoration(
-              labelText: 'Lat',
-              border: OutlineInputBorder(),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: TextFormField(
-            controller: _longitudeController,
-            decoration: const InputDecoration(
-              labelText: 'Lng',
-              border: OutlineInputBorder(),
-            ),
-          ),
-        ),
-      ],
-    );
   }
 }
