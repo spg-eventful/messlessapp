@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:messless/widgets/msls_location_picker.dart';
 
 import 'warehouse_ws.dart';
 
@@ -18,9 +20,8 @@ class _WarehouseFormScreenState extends State<WarehouseFormScreen> {
   final _nameController = TextEditingController();
   final _latController = TextEditingController();
   final _lngController = TextEditingController();
-  int? _selectedCompanyId;
-  late final Future<List<Map<String, dynamic>>> _companiesFuture;
 
+  LatLng? _initialTarget;
   late final Future<void> _initFuture;
 
   bool get isEditMode => widget.warehouseId != null;
@@ -29,7 +30,6 @@ class _WarehouseFormScreenState extends State<WarehouseFormScreen> {
   void initState() {
     super.initState();
 
-    _companiesFuture = _loadCompanies();
     _initFuture = _loadInitialData();
   }
 
@@ -38,14 +38,11 @@ class _WarehouseFormScreenState extends State<WarehouseFormScreen> {
 
     final warehouse = await WarehouseWs.getById(widget.warehouseId!);
 
-    _nameController.text = WarehouseWs.titleOf(warehouse);
+    _nameController.text = warehouse.label;
 
-    _latController.text = (warehouse['latitude'] ?? '').toString();
-    _lngController.text = (warehouse['longitude'] ?? '').toString();
-  }
-
-  Future<List<Map<String, dynamic>>> _loadCompanies() {
-    return WarehouseWs.findCompanies();
+    _latController.text = warehouse.latitude.toString();
+    _lngController.text = warehouse.longitude.toString();
+    _initialTarget = LatLng(warehouse.latitude, warehouse.longitude);
   }
 
   @override
@@ -60,8 +57,11 @@ class _WarehouseFormScreenState extends State<WarehouseFormScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final name = _nameController.text.trim();
-    final lat = double.tryParse(_latController.text.trim());
-    final lng = double.tryParse(_lngController.text.trim());
+    final latText = _latController.text.replaceAll(',', '.');
+    final lngText = _lngController.text.replaceAll(',', '.');
+
+    final lat = double.tryParse(latText);
+    final lng = double.tryParse(lngText);
 
     if (lat == null || lng == null) {
       throw StateError("Invalid coordinates");
@@ -129,57 +129,17 @@ class _WarehouseFormScreenState extends State<WarehouseFormScreen> {
                   ),
 
                   const SizedBox(height: 16),
-
-                  TextFormField(
-                    controller: _latController,
-                    decoration: const InputDecoration(
-                      labelText: 'Latitude',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Latitude erforderlich';
-                      }
-
-                      final parsed = double.tryParse(value);
-                      if (parsed == null) return 'Ungültige Zahl';
-
-                      if (parsed < -90 || parsed > 90) {
-                        return 'Muss zwischen -90 und 90 sein';
-                      }
-
-                      return null;
-                    },
+                  const Text(
+                    "Standort",
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-
-                  const SizedBox(height: 16),
-
-                  TextFormField(
-                    controller: _lngController,
-                    decoration: const InputDecoration(
-                      labelText: 'Longitude',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Longitude erforderlich';
-                      }
-
-                      final parsed = double.tryParse(value);
-                      if (parsed == null) return 'Ungültige Zahl';
-
-                      if (parsed < -180 || parsed > 180) {
-                        return 'Muss zwischen -180 und 180 sein';
-                      }
-
-                      return null;
-                    },
+                  const SizedBox(height: 12),
+                  MslsLocationPicker(
+                    latitudeController: _latController,
+                    longitudeController: _lngController,
+                    targetLocation: _initialTarget,
                   ),
-
                   const SizedBox(height: 16),
-
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(

@@ -5,8 +5,9 @@ import '../router.dart';
 
 class MslsAppbar extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget>? actions;
+  final Widget? title;
 
-  const MslsAppbar({super.key, this.actions});
+  const MslsAppbar({super.key, this.actions, this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +15,7 @@ class MslsAppbar extends StatelessWidget implements PreferredSizeWidget {
     final routeName = route?.name ?? "MESSless";
 
     return AppBar(
-      title: Text(routeName),
+      title: title ?? Text(routeName),
       actions: [
         if (actions != null) ...actions!,
         if (route?.path == RouterDestinations.home.url) ...[
