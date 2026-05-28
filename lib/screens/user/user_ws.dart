@@ -65,7 +65,7 @@ class UserWs {
         "phone": phone,
         "firstName": firstName,
         "lastName": lastName,
-        "company": companyId}),
+        "companyId": companyId}),
     );
 
     HelperWs.ensureStatus(res.status, {200});
