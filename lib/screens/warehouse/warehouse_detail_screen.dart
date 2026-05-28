@@ -57,7 +57,7 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('warehouse Details'),
+        title: const Text('Warehouse Details'),
         actions: [
           if (HelperWs.isManagerOrHigher)
             IconButton(

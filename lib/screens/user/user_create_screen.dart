@@ -22,7 +22,12 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
   final _passwordController = TextEditingController();
 
   String _selectedRole = 'Worker';
-  final List<String> _roles = ['Manager', 'Worker', 'StageHand'];
+  final List<String> _roles = [
+    'CompanyAdmin',
+    'Manager',
+    'Worker',
+    'StageHand'
+  ];
 
   @override
   void dispose() {
