@@ -182,8 +182,10 @@ class _MslsLocationPickerState extends State<MslsLocationPicker> {
   Widget _buildMapView({bool interactive = true}) {
     final latStr = widget.latitudeController.text.replaceAll(',', '.');
     final lngStr = widget.longitudeController.text.replaceAll(',', '.');
-    final lat = double.tryParse(latStr) ?? widget.targetLocation!.latitude;
-    final lng = double.tryParse(lngStr) ?? widget.targetLocation!.longitude;
+    final lat =
+        double.tryParse(latStr) ?? widget.targetLocation?.latitude ?? 48.2082;
+    final lng =
+        double.tryParse(lngStr) ?? widget.targetLocation?.longitude ?? 16.3738;
     final point = LatLng(lat, lng);
 
     return SizedBox(
