@@ -1,16 +1,10 @@
-import 'package:intl/number_symbols.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'company.g.dart';
 
 @JsonSerializable()
 class Company {
-  Company(
-      this.id,
-      this.label,
-      this.latitude,
-      this.longitude,
-      );
+  Company(this.id, this.label, this.longitude, this.latitude);
 
   final int id;
   final String label;

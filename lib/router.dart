@@ -1,19 +1,25 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
-import 'package:messless/screens/technical_log/qr_scanner_screen.dart';
-import 'package:messless/screens/technical_log/add_technical_log_entry.dart';
-import 'package:messless/screens/events/add_events.dart';
-import 'package:messless/screens/events/event_details.dart';
+import 'package:messless/screens/company/company_create_screen.dart';
+import 'package:messless/screens/company/company_detail_screen.dart';
+import 'package:messless/screens/company/company_overview_screen.dart';
 import 'package:messless/screens/equipment/add_equipment.dart';
 import 'package:messless/screens/equipment/equipment.dart';
 import 'package:messless/screens/equipment/equipment_details.dart';
+import 'package:messless/screens/events/add_events.dart';
+import 'package:messless/screens/events/event_details.dart';
 import 'package:messless/screens/events/events.dart';
 import 'package:messless/screens/home.dart';
 import 'package:messless/screens/login.dart';
 import 'package:messless/screens/settings.dart';
-import 'package:messless/screens/warehouses/warehouse_detail_screen.dart';
-import 'package:messless/screens/warehouses/warehouse_form_screen.dart';
-import 'package:messless/screens/warehouses/warehouses_screen.dart';
+import 'package:messless/screens/technical_log/add_technical_log_entry.dart';
+import 'package:messless/screens/technical_log/qr_scanner_screen.dart';
+import 'package:messless/screens/user/user_create_screen.dart';
+import 'package:messless/screens/user/user_detail_screen.dart';
+import 'package:messless/screens/user/user_overview_screen.dart';
+import 'package:messless/screens/warehouse/warehouse_create_screen.dart';
+import 'package:messless/screens/warehouse/warehouse_detail_screen.dart';
+import 'package:messless/screens/warehouse/warehouse_overview_screen.dart';
 import 'package:messless/screens/ws.dart';
 
 enum RouterDestinations {
@@ -25,10 +31,21 @@ enum RouterDestinations {
   equipment(url: '/equipment'),
   addEquipment(url: '/addEquipment'),
   equipmentDetails(url: '/equipmentDetails/:id'),
+  editEquipment(url: '/editEquipment/:id'),
   wsTesting(url: '/wsTesting'),
   qrScanner(url: '/qrScanner'),
-  addTechnicalLogEntry(url: '/addTechnicalLogEntry/:id');
-
+  addEvents(url: '/addEvents'),
+  addTechnicalLogEntry(url: '/addTechnicalLogEntry/:id'),
+  eventDetails(url: '/eventDetails/:id'),
+  companies(url: '/companies'),
+  addCompany(url: '/add'),
+  detailsCompany(url: '/:id'),
+  users(url: '/users'),
+  addUser(url: '/add'),
+  detailsUser(url: '/:id'),
+  addEvent(url: '/add'),
+  detailsEvent(url: '/:id'),
+  editEvent(url: '/edit');
 
   final String url;
 
@@ -67,33 +84,69 @@ final goRouter = GoRouter(
             ),
           ],
         ),
+
+        GoRoute(
+            path: RouterDestinations.companies.withoutLeadingSlash(),
+            name: "Companies",
+            builder: (context, state) => const CompanyScreen(),
+            routes: [
+              GoRoute(
+                path: RouterDestinations.addCompany.withoutLeadingSlash(),
+                name: "Add Company",
+                builder: (context, state) => const CreateCompanyScreen(),
+              ),
+              GoRoute(
+                path: RouterDestinations.detailsCompany.withoutLeadingSlash(),
+                name: "Company Details",
+                builder: (context, state) =>
+                    CompanyDetailScreen(
+                        companyId: int.parse(state.pathParameters['id']!)),
+              ),
+            ]
+        ),
+        GoRoute(
+            path: RouterDestinations.users.withoutLeadingSlash(),
+          name: "Users",
+          builder: (context, state) =>
+              UserScreen(),
+            routes: [
+              GoRoute(
+                path: RouterDestinations.addUser.withoutLeadingSlash(),
+                name: "Add User",
+                builder: (context, state) => const CreateUserScreen(),
+              ),
+              GoRoute(
+                path: RouterDestinations.detailsUser.withoutLeadingSlash(),
+                name: "User Details",
+                builder: (context, state) =>
+                    UserDetailScreen(
+                        userId: int.parse(state.pathParameters['id']!)),
+              ),
+            ]
+        ),
         GoRoute(
           path: RouterDestinations.events.withoutLeadingSlash(),
           name: "Events",
           builder: (context, state) => const EventsScreen(),
           routes: [
             GoRoute(
-              path: 'add',
+              path: RouterDestinations.addEvent.withoutLeadingSlash(),
               name: "Event hinzufügen",
               builder: (context, state) => const AddEventsScreen(),
             ),
             GoRoute(
-              path: ':id',
+              path: RouterDestinations.detailsEvent.withoutLeadingSlash(),
               name: "Event Details",
-              builder: (context, state) {
-                final String idString = state.pathParameters['id']!;
-                final int id = int.parse(idString);
-                return EventDetailsScreen(eventId: id);
-              },
+              builder: (context, state) =>
+                  EventDetailsScreen(
+                      eventId: int.parse(state.pathParameters['id']!)),
               routes: [
                 GoRoute(
-                  path: 'edit',
+                  path: RouterDestinations.editEvent.withoutLeadingSlash(),
                   name: "Event Edit",
-                  builder: (context, state) {
-                    final String idString = state.pathParameters['id']!;
-                    final int id = int.parse(idString);
-                    return AddEventsScreen(eventId: id);
-                  },
+                  builder: (context, state) =>
+                      AddEventsScreen(
+                          eventId: int.parse(state.pathParameters['id']!)),
                 ),
               ],
             ),
@@ -107,24 +160,22 @@ final goRouter = GoRouter(
           routes: [
             GoRoute(
               path: 'new',
-              name: "warehouse Create",
-              builder: (context, state) => const WarehouseFormScreen(),
+              name: "Warehouse Create",
+              builder: (context, state) => const CreateWarehouseScreen(),
             ),
             GoRoute(
               path: ':id',
-              name: "warehouse Detail",
-              builder: (context, state) {
-                final id = int.parse(state.pathParameters['id']!);
-                return WarehouseDetailScreen(warehouseId: id);
-              },
+              name: "Warehouse Detail",
+              builder: (context, state) =>
+                  WarehouseDetailScreen(
+                      warehouseId: int.parse(state.pathParameters['id']!)),
               routes: [
                 GoRoute(
                   path: 'edit',
-                  name: "warehouse Edit",
-                  builder: (context, state) {
-                    final id = int.parse(state.pathParameters['id']!);
-                    return WarehouseFormScreen(warehouseId: id);
-                  },
+                  name: "Warehouse Edit",
+                    builder: (context, state) =>
+                        CreateWarehouseScreen(
+                            warehouseId: int.parse(state.pathParameters['id']!))
                 ),
               ],
             ),
@@ -180,4 +231,3 @@ final goRouter = GoRouter(
     ),
   ],
 );
-

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:messless/screens/company/company_ws.dart';
+import 'package:messless/ws/helper.dart';
 
-import '../../services/user_role.dart';
-import '../../ws/schema/warehouse/warehouse.dart';
 import '../../ws/schema/company/company.dart';
+import '../../ws/schema/warehouse/warehouse.dart';
 import 'warehouse_ws.dart';
 
 class WarehousesScreen extends StatefulWidget {
@@ -18,7 +19,7 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
   late Future<List<Warehouse>> _warehousesFuture;
 
   bool get _isAdminSelectingCompany =>
-      UserRole.isAdmin && _selectedCompanyId == null;
+      HelperWs.isAdmin && _selectedCompanyId == null;
 
   @override
   void initState() {
@@ -40,12 +41,12 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            if (UserRole.isAdmin && _selectedCompanyId == null) {
+            if (HelperWs.isAdmin && _selectedCompanyId == null) {
               context.pop();
-            } else if (UserRole.isAdmin) {
+            } else if (HelperWs.isAdmin) {
               setState(() {
                 _selectedCompanyId = null;
-                WarehouseWs.clearActiveCompanyId();
+                HelperWs.clearActiveCompanyId();
               });
             } else {
               context.pop();
@@ -57,7 +58,7 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
       body: _isAdminSelectingCompany ? _buildCompanies() : _buildWarehouses(),
 
       floatingActionButton:
-          !_isAdminSelectingCompany && UserRole.isManagerOrHigher
+          !_isAdminSelectingCompany && HelperWs.isManagerOrHigher
           ? FloatingActionButton(
               onPressed: () async {
                 final result = await context.push('/warehouses/new');
@@ -74,13 +75,16 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
 
   Widget _buildCompanies() {
     return FutureBuilder<List<Company>>(
-      future: WarehouseWs.findCompanies(),
+      future: CompanyWs.find(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
 
         final companies = snapshot.data!;
+
+        companies.sort((a, b) =>
+            a.label.toLowerCase().compareTo(b.label.toLowerCase()));
 
         return ListView.separated(
           padding: const EdgeInsets.all(8),
@@ -89,7 +93,7 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
           itemBuilder: (context, index) {
             final c = companies[index];
             final id = c.id;
-            final name = c.label;
+            final name = c.label ?? 'Company #$id';
 
             return Card(
               clipBehavior: Clip.hardEdge,
@@ -97,7 +101,7 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
                 onTap: () {
                   setState(() {
                     _selectedCompanyId = id;
-                    WarehouseWs.setActiveCompanyId(id);
+                    HelperWs.setActiveCompanyId(id);
                     _warehousesFuture = WarehouseWs.findAll();
                   });
                 },
@@ -128,7 +132,7 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
         }
 
         final all = snapshot.data!;
-        final companyId = WarehouseWs.activeCompanyId;
+        final companyId = HelperWs.activeCompanyId;
 
         final warehouses = all.where((w) {
           return w.company == companyId;

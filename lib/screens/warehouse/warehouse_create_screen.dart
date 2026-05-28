@@ -2,19 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:messless/widgets/msls_location_picker.dart';
+import 'package:messless/ws/helper.dart';
 
 import 'warehouse_ws.dart';
 
-class WarehouseFormScreen extends StatefulWidget {
+class CreateWarehouseScreen extends StatefulWidget {
   final int? warehouseId;
 
-  const WarehouseFormScreen({super.key, this.warehouseId});
+  const CreateWarehouseScreen({super.key, this.warehouseId});
 
   @override
-  State<WarehouseFormScreen> createState() => _WarehouseFormScreenState();
+  State<CreateWarehouseScreen> createState() => _CreateWarehouseScreenState();
 }
 
-class _WarehouseFormScreenState extends State<WarehouseFormScreen> {
+class _CreateWarehouseScreenState extends State<CreateWarehouseScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final _nameController = TextEditingController();
@@ -67,7 +68,7 @@ class _WarehouseFormScreenState extends State<WarehouseFormScreen> {
       throw StateError("Invalid coordinates");
     }
 
-    final companyId = WarehouseWs.activeCompanyId;
+    final companyId = HelperWs.activeCompanyId;
 
     if (isEditMode) {
       await WarehouseWs.update(
@@ -86,7 +87,7 @@ class _WarehouseFormScreenState extends State<WarehouseFormScreen> {
       );
     }
 
-    if (mounted) context.pop();
+    if (mounted) context.pop(true);
   }
 
   @override
