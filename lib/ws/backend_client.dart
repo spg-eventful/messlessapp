@@ -128,6 +128,11 @@ class BackendClient {
     _saveAuthenticatedConnection(res.body!);
   }
 
+  static Future<void> logout() async {
+    authState.authenticatedConnection = null;
+    await storage.delete(key: authStorageKey);
+  }
+
   static Future<void> _saveAuthenticatedConnection(String resBody) async {
     final deserialized = Auth.fromJson(jsonDecode(resBody));
 

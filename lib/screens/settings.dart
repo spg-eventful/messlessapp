@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:messless/router.dart';
 import 'package:messless/widgets/msls_appbar.dart';
+import 'package:messless/ws/backend_client.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -74,6 +76,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   sliderValue = v;
                 });
               },
+            ),
+
+            const SizedBox(height: 40),
+
+            FilledButton.icon(
+              onPressed: () async {
+                await BackendClient.logout();
+                if (context.mounted) context.go('/login');
+              },
+              icon: const Icon(Icons.logout),
+              label: const Text("Logout"),
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+                foregroundColor: Theme.of(context).colorScheme.onError,
+              ),
             ),
           ],
         ),

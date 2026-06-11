@@ -222,23 +222,29 @@ class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
 
       if (widget.equipmentId == null) {
         body["isStorage"] = isEquipmentStorage;
-        await BackendClient.service("equipments").create(jsonEncode(body));
+        final res = await BackendClient.service("equipments").create(
+          jsonEncode(body),
+        );
+        if (mounted) {
+          final createdData = jsonDecode(res.body!);
+          final newId = createdData['id'];
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Equipment erfolgreich erstellt')),
+          );
+          context.pushReplacementNamed(
+            "Equipment Details",
+            pathParameters: {"id": newId.toString()},
+          );
+        }
       } else {
         body["\$id"] = widget.equipmentId;
         await BackendClient.service("equipments").update(jsonEncode(body));
-      }
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              widget.equipmentId == null
-                  ? 'Equipment erfolgreich erstellt'
-                  : 'Equipment erfolgreich aktualisiert',
-            ),
-          ),
-        );
-        context.go("/equipment");
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Equipment erfolgreich aktualisiert')),
+          );
+          context.pop();
+        }
       }
     } catch (e) {
       if (mounted) {

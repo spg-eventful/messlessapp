@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:messless/ws/backend_client.dart';
 
 import '../router.dart';
 
@@ -23,6 +24,16 @@ class MslsAppbar extends StatelessWidget implements PreferredSizeWidget {
             icon: const Icon(Icons.settings),
             tooltip: "Settings",
             onPressed: () => context.push("/settings"),
+          ),
+        ],
+        if (route?.path == RouterDestinations.settings.url) ...[
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: "Logout",
+            onPressed: () async {
+              await BackendClient.logout();
+              if (context.mounted) context.go('/login');
+            },
           ),
         ],
       ],

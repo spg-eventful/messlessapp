@@ -27,6 +27,7 @@ class _AddTechnicalLogEntryScreenState extends State<AddTechnicalLogEntry> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _latitudeController = TextEditingController();
   final TextEditingController _longitudeController = TextEditingController();
+  final TextEditingController _commentController = TextEditingController();
 
   LoggableType _selectedType = LoggableType.warehouse;
   bool isCheckIn = true;
@@ -215,6 +216,22 @@ class _AddTechnicalLogEntryScreenState extends State<AddTechnicalLogEntry> {
                         child: Text("Bitte zuerst ein Ziel auswählen."),
                       ),
 
+                    const SizedBox(height: 24),
+                    const Text(
+                      "Kommentar (optional)",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _commentController,
+                      maxLength: 500,
+                      maxLines: 3,
+                      decoration: const InputDecoration(
+                        hintText: "Z.B. Zustand des Equipments...",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+
                     const SizedBox(height: 40),
                     ElevatedButton.icon(
                       onPressed: isFormValid ? submitLogEntry : null,
@@ -277,6 +294,9 @@ class _AddTechnicalLogEntryScreenState extends State<AddTechnicalLogEntry> {
           "loggable": _belongsTo,
           "latitude": double.tryParse(latText),
           "longitude": double.tryParse(lngText),
+          "comment": _commentController.text.isEmpty
+              ? null
+              : _commentController.text,
         }),
       );
       if (mounted) context.pop();
