@@ -21,7 +21,7 @@ class HomeScreen extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               Expanded(
                 child: _buildHistorySection(context),
@@ -42,6 +42,7 @@ class HomeScreen extends StatelessWidget {
   Widget _buildDefaultView(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         _buildBigThomasButton(
           context,
