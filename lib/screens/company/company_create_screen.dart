@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:messless/screens/company/company_ws.dart';
 
 import '../../widgets/msls_appbar.dart';
+import '../../widgets/msls_location_picker.dart';
 
 class CreateCompanyScreen extends StatefulWidget {
   const CreateCompanyScreen({super.key});
@@ -103,42 +104,9 @@ class _CreateCompanyScreenState extends State<CreateCompanyScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _latController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                  labelText: 'Latitude',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.map_rounded),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Darf nicht leer sein';
-                  }
-                  if (double.tryParse(value.trim()) == null) {
-                    return 'Muss eine gültige Zahl sein';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _lonController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                  labelText: 'Longitude',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.map_rounded),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Darf nicht leer sein';
-                  }
-                  if (double.tryParse(value.trim()) == null) {
-                    return 'Muss eine gültige Zahl sein';
-                  }
-                  return null;
-                },
+              MslsLocationPicker(
+                latitudeController: _latController,
+                longitudeController: _lonController,
               ),
               const SizedBox(height: 32),
               ElevatedButton(

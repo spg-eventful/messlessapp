@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:messless/screens/events/utils/fetch_event_details.dart';
 import 'package:messless/widgets/msls_appbar.dart';
+import 'package:messless/ws/helper.dart';
 
 import '../../services/user_role.dart';
 import '../../widgets/msls_location_picker.dart';
@@ -28,14 +29,18 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
   final TextEditingController _longitudeController = TextEditingController();
   final TextEditingController _companyIdController = TextEditingController();
 
-  late Future<List<Company>> _companies;
+  Future<List<Company>>? _companies;
 
   LatLng? _initialTarget;
 
   @override
   void initState() {
     super.initState();
-    _companies = CompanyWs.find();
+    if (HelperWs.isAdmin) {
+      _companies = CompanyWs.find();
+    } else {
+      _companyIdController.text = HelperWs.currentCompanyId().toString();
+    }
     if (widget.eventId != null) {
       _loadEventData();
     }
@@ -81,7 +86,7 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
       appBar: const MslsAppbar(),
       body: SingleChildScrollView(
         child: FutureBuilder<List<Company>>(
-          future: _companies,
+          future: _companies ?? Future.value(<Company>[]),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const SizedBox(
@@ -152,7 +157,7 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
                           prefixIcon: Icon(Icons.business),
                         ),
                         validator: (value) {
-                          if (value == null) {
+                          if (value == null && UserRole.isAdmin) {
                             return 'Bitte wählen Sie eine Company aus!';
                           }
                           return null;
@@ -161,9 +166,10 @@ class _AddEventsScreenState extends State<AddEventsScreen> {
                     const SizedBox(height: 32),
 
                     FilledButton.icon(
-                      onPressed: (_formKey.currentState?.validate() ?? false)
+                      onPressed: /*(_formKey.currentState?.validate() ?? false)
                           ? submitEvent
-                          : null,
+                          : null,<*/
+                          submitEvent,
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.all(16.0),
                       ),

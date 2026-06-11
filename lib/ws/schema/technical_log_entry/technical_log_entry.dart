@@ -14,6 +14,7 @@ class TechnicalLogEntry {
     this.latitude,
     this.longitude,
     this.createdAt,
+    this.comment,
   );
 
   final int id;
@@ -25,6 +26,7 @@ class TechnicalLogEntry {
   final double latitude;
   final double longitude;
   final String createdAt;
+  final String? comment;
 
   factory TechnicalLogEntry.fromJson(Map<String, dynamic> json) =>
       _$TechnicalLogEntryFromJson(json);

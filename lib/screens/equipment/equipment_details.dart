@@ -7,6 +7,7 @@ import 'package:messless/screens/equipment/utils/export_qr_codes.dart';
 import 'package:messless/screens/equipment/utils/fetch_equipment_details.dart';
 import 'package:messless/services/user_role.dart';
 import 'package:messless/widgets/msls_appbar.dart';
+import 'package:messless/ws/schema/technical_log_entry/technical_log_entry.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../ws/backend_client.dart';
@@ -245,47 +246,13 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                       const SizedBox(height: 4),
                   itemBuilder: (context, index) {
                     final log = technicalLogEntries[index];
-                    return Card(
-                      elevation: 1,
-                      margin: EdgeInsets.zero,
-                      clipBehavior: Clip.hardEdge,
-                      child: InkWell(
-                        onTap: () {
-                          final newLoc = LatLng(log.latitude, log.longitude);
-                          mapController.move(newLoc, 15.0);
-                          setState(() => _markerLocation = newLoc);
-                        },
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: log.isCheckIn
-                                ? Colors.green.withAlpha(40)
-                                : Colors.orange.withAlpha(40),
-                            child: Icon(
-                              log.isCheckIn ? Icons.login : Icons.logout,
-                              color: log.isCheckIn
-                                  ? Colors.green
-                                  : Colors.orange,
-                            ),
-                          ),
-                          title: Text(
-                            log.userFullName,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(log.isCheckIn ? 'Check-In' : 'Check-Out'),
-                              Text(
-                                DateFormat(
-                                  'dd.MM.yyyy, HH:mm',
-                                ).format(DateTime.parse(log.createdAt)),
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
-                          trailing: const Icon(Icons.chevron_right, size: 20),
-                        ),
-                      ),
+                    return LogEntryCard(
+                      log: log,
+                      onTap: () {
+                        final newLoc = LatLng(log.latitude, log.longitude);
+                        mapController.move(newLoc, 15.0);
+                        setState(() => _markerLocation = newLoc);
+                      },
                     );
                   },
                 ),
@@ -299,13 +266,18 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                   children: [
                     Expanded(
                       child: FilledButton.icon(
-                        onPressed: () {
-                          context.pushNamed(
+                        onPressed: () async {
+                          await context.pushNamed(
                             "Add Technical Log Entry",
                             pathParameters: {
                               "id": widget.equipmentId.toString(),
                             },
                           );
+                          setState(() {
+                            _dataFuture = EquipmentDetailsData.getEquipment(
+                              widget.equipmentId,
+                            );
+                          });
                         },
                         icon: const Icon(Icons.add),
                         label: const Text('Neuer Log'),
@@ -386,6 +358,90 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
     if (res.status != 200 && res.status != 204) {
       throw StateError("couldn't delete Equipment ${res.body}");
     }
+  }
+}
+
+class LogEntryCard extends StatefulWidget {
+  final TechnicalLogEntry log;
+  final VoidCallback onTap;
+
+  const LogEntryCard({super.key, required this.log, required this.onTap});
+
+  @override
+  State<LogEntryCard> createState() => _LogEntryCardState();
+}
+
+class _LogEntryCardState extends State<LogEntryCard> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 1,
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.hardEdge,
+      child: InkWell(
+        onTap: () {
+          widget.onTap();
+          if (widget.log.comment != null && widget.log.comment!.isNotEmpty) {
+            setState(() {
+              _isExpanded = !_isExpanded;
+            });
+          }
+        },
+        child: Column(
+          children: [
+            ListTile(
+              leading: CircleAvatar(
+                backgroundColor: widget.log.isCheckIn
+                    ? Colors.green.withAlpha(40)
+                    : Colors.orange.withAlpha(40),
+                child: Icon(
+                  widget.log.isCheckIn ? Icons.login : Icons.logout,
+                  color: widget.log.isCheckIn ? Colors.green : Colors.orange,
+                ),
+              ),
+              title: Text(
+                widget.log.userFullName,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(widget.log.isCheckIn ? 'Check-In' : 'Check-Out'),
+                  Text(
+                    DateFormat(
+                      'dd.MM.yyyy, HH:mm',
+                    ).format(DateTime.parse(widget.log.createdAt)),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+              trailing: widget.log.comment != null &&
+                      widget.log.comment!.isNotEmpty
+                  ? Icon(
+                      _isExpanded ? Icons.expand_less : Icons.expand_more,
+                      size: 20,
+                    )
+                  : const Icon(Icons.chevron_right, size: 20),
+            ),
+            if (_isExpanded &&
+                widget.log.comment != null &&
+                widget.log.comment!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(72, 0, 16, 16),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Kommentar: ${widget.log.comment}',
+                    style: const TextStyle(fontStyle: FontStyle.italic),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
